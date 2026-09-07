@@ -1,0 +1,15 @@
+{
+  "schema": "reasons/1",
+  "reasons": [
+    {"reason":"order_status","label":"Onde está meu pedido","short_label":"Rastreio","color_slot":1},
+    {"reason":"delivery_issue","label":"Entrega com problema","short_label":"Entrega","color_slot":2},
+    {"reason":"subscription","label":"Assinatura","short_label":"Assinatura","color_slot":3},
+    {"reason":"product_question","label":"Dúvida sobre o produto","short_label":"Dúvida","color_slot":4},
+    {"reason":"refund_request","label":"Pedido de reembolso","short_label":"Reembolso","color_slot":5},
+    {"reason":"cancel_change_order","label":"Cancelar ou alterar pedido","short_label":"Cancelamento","color_slot":6},
+    {"reason":"adverse_reaction","label":"Reação na pele","short_label":"Reação","color_slot":7},
+    {"reason":"damaged_item","label":"Produto danificado","short_label":"Danificado","color_slot":8},
+    {"reason":"wrong_item","label":"Item errado","short_label":"Item errado","color_slot":9},
+    {"reason":"promo_discount","label":"Cupom e promoção","short_label":"Cupom","color_slot":10}
+  ]
+}

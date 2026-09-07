@@ -1,0 +1,90 @@
+{
+  "schema": "action-plans/1",
+  "note": "Único arquivo de data/ escrito à mão. Não sai do gerador e não pertence a um período — um plano fica aberto até ser fechado.",
+  "plans": [
+    {
+      "plan_id": "pl_001",
+      "title": "Zerar a fila sem primeira resposta",
+      "problem": "47 conversas estão abertas há mais de 24 horas sem nenhuma resposta humana. Para o cliente que escreveu, a Quasi simplesmente não respondeu — e é dessa fila que saem os pedidos de reembolso e boa parte dos chargebacks de 'produto não recebido'.",
+      "why_it_matters": "É a única meta do período em vermelho: 47 contra um teto de 20. Cada dia parado aqui vira reembolso ou disputa com o banco depois.",
+      "priority": 1,
+      "status": "in_progress",
+      "owner": "Amara Osei",
+      "opened_at": "2026-08-25",
+      "metric": "Abertos há +24h sem resposta ≤ 20 no fechamento da semana, por 3 semanas seguidas.",
+      "actions": [
+        { "text": "Varredura diária às 9h e às 16h em tudo que passou de 18h sem resposta, antes de virar caso de 24h.", "type": "internal", "done": true },
+        { "text": "Regra no Commslayer que empurra para o topo da fila qualquer conversa sem resposta humana há 16h.", "type": "tech", "done": true },
+        { "text": "Redistribuir a fila de domingo — hoje 3 pessoas seguram o dia de maior acúmulo.", "type": "internal", "done": false },
+        { "text": "Macro de primeiro contato para rastreio, que responde sem depender de consultar o pedido.", "type": "comms", "done": false }
+      ]
+    },
+    {
+      "plan_id": "pl_002",
+      "title": "Cortar o volume de rastreio na origem",
+      "problem": "Um em cada quatro contatos é 'onde está meu pedido'. São conversas que não deveriam existir: o cliente escreve porque o e-mail de envio não chegou, ou porque o código não atualiza por dias e ele conclui que o pedido sumiu.",
+      "why_it_matters": "É o maior bloco de volume da operação. Derrubar isso libera capacidade para tudo que está travado no plano 1, sem contratar ninguém.",
+      "priority": 2,
+      "status": "in_progress",
+      "owner": "Daniel Okafor",
+      "opened_at": "2026-08-18",
+      "metric": "Participação de 'Onde está meu pedido' cai de 26% para ≤ 18% do volume total.",
+      "actions": [
+        { "text": "E-mail proativo no dia 7 pós-compra quando o rastreio não teve evento novo em 72h.", "type": "comms", "done": true },
+        { "text": "Página de rastreio na própria loja, sem jogar o cliente no site da transportadora.", "type": "tech", "done": false },
+        { "text": "Prazo real por região na página do produto — hoje diz '5 a 9 dias' para todo mundo.", "type": "comms", "done": false },
+        { "text": "Revisar com o fornecedor o intervalo entre 'pedido pago' e 'postado', hoje em 3,4 dias.", "type": "supplier", "done": false }
+      ]
+    },
+    {
+      "plan_id": "pl_003",
+      "title": "Reação na pele: protocolo próprio",
+      "problem": "Reação na pele é o motivo que a equipe responde mais rápido e o segundo que demora mais para fechar. A primeira resposta sai em pouco mais de uma hora, mas o caso fica aberto porque ninguém sabe quando encerrar: falta follow-up definido e falta clareza sobre quando encaminhar para orientação médica.",
+      "why_it_matters": "É o único motivo com risco de marca e de regulação. Um caso mal conduzido custa muito mais do que qualquer reembolso da lista.",
+      "priority": 2,
+      "status": "in_progress",
+      "owner": "Priya Raman",
+      "opened_at": "2026-08-11",
+      "metric": "Resolução mediana de 'Reação na pele' ≤ 24h e 100% dos casos com follow-up registrado em 72h.",
+      "actions": [
+        { "text": "Roteiro de triagem em três perguntas, aprovado antes de ir para a equipe.", "type": "policy", "done": true },
+        { "text": "Reembolso liberado sem escalar quando há relato de reação, até US$ 90.", "type": "policy", "done": true },
+        { "text": "Follow-up automático em 72h para confirmar se a reação passou.", "type": "tech", "done": false },
+        { "text": "Registrar lote do produto em todo caso, para cruzar com o fornecedor.", "type": "internal", "done": false }
+      ]
+    },
+    {
+      "plan_id": "pl_004",
+      "title": "Assinatura cobrando depois do cancelamento",
+      "problem": "Clientes cancelam a assinatura e são cobrados no ciclo seguinte. Quando isso acontece, boa parte não escreve para o suporte — abre disputa direto no banco. 'Assinatura não cancelada' é hoje o terceiro motivo de chargeback.",
+      "why_it_matters": "Chargeback por assinatura é o pior tipo: a taxa é cobrada mesmo quando se ganha o caso, e o volume conta para os programas de monitoramento das bandeiras.",
+      "priority": 3,
+      "status": "blocked",
+      "owner": null,
+      "opened_at": "2026-08-04",
+      "metric": "Taxa de chargeback ≤ 0,5% dos pedidos e zero disputa com motivo 'assinatura não cancelada'.",
+      "actions": [
+        { "text": "Reproduzir o bug: cancelamento dentro de 24h do faturamento não interrompe o ciclo.", "type": "tech", "done": true },
+        { "text": "E-mail de confirmação de cancelamento com a data em que a cobrança para.", "type": "comms", "done": false },
+        { "text": "Botão de cancelar visível na conta, sem precisar falar com atendimento.", "type": "tech", "done": false },
+        { "text": "Bloqueado: depende da migração do app de assinatura, sem data definida.", "type": "tech", "done": false }
+      ]
+    },
+    {
+      "plan_id": "pl_005",
+      "title": "Entrega perdida no último quilômetro",
+      "problem": "'Entrega com problema' é o motivo que mais demora para fechar — o caso fica parado esperando resposta da transportadora, que leva dias. Uma parte vem marcada como entregue sem o cliente ter recebido.",
+      "why_it_matters": "Puxa sozinho a mediana de resolução da operação inteira para cima e é a origem da maioria das reposições enviadas.",
+      "priority": 3,
+      "status": "not_started",
+      "owner": "Elena Vasquez",
+      "opened_at": "2026-09-01",
+      "metric": "Resolução mediana de 'Entrega com problema' ≤ 40h.",
+      "actions": [
+        { "text": "Prazo fixo com a transportadora para responder investigação de extravio.", "type": "supplier", "done": false },
+        { "text": "Reenviar sem esperar o parecer quando o valor do pedido for menor que o custo de investigar.", "type": "policy", "done": false },
+        { "text": "Comparar índice de 'entregue mas não recebido' por região e cortar as piores rotas.", "type": "internal", "done": false }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "schema": "revenue/1",
+  "currency": "USD",
+  "rows": [
+    {"date":"2026-08-24","revenue_usd":24797,"orders":369},
+    {"date":"2026-08-25","revenue_usd":19507.99,"orders":292},
+    {"date":"2026-08-26","revenue_usd":19439.88,"orders":287},
+    {"date":"2026-08-27","revenue_usd":19175.33,"orders":289},
+    {"date":"2026-08-28","revenue_usd":17404.29,"orders":260},
+    {"date":"2026-08-29","revenue_usd":17473.6,"orders":256},
+    {"date":"2026-08-30","revenue_usd":16316.63,"orders":248},
+    {"date":"2026-08-31","revenue_usd":22582.24,"orders":341},
+    {"date":"2026-09-01","revenue_usd":22123.84,"orders":335},
+    {"date":"2026-09-02","revenue_usd":19564.52,"orders":282},
+    {"date":"2026-09-03","revenue_usd":20637.33,"orders":305},
+    {"date":"2026-09-04","revenue_usd":19145.87,"orders":277},
+    {"date":"2026-09-05","revenue_usd":17128.22,"orders":248},
+    {"date":"2026-09-06","revenue_usd":16335.75,"orders":236}
+  ]
+}

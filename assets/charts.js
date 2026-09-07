@@ -1,0 +1,290 @@
+/* =========================================================================
+   Gráficos em SVG inline e os formatadores da página.
+
+   Sem biblioteca: cada gráfico é uma string de SVG montada aqui. As regras que
+   valem para todos eles:
+
+   · Um eixo só. Duas medidas de escalas diferentes viram dois gráficos.
+   · Marca fina, grade discreta, rótulo direto quando são poucas séries.
+   · Camada de hover por padrão — um gráfico em HTML É interativo.
+   · A cor das séries vem de --series-N na folha de estilo, na ordem fixa em
+     que foram validadas. A ordem não é decorativa: é o mecanismo de
+     segurança para daltonismo.
+   ========================================================================= */
+
+const SERIES = ['var(--series-1)', 'var(--series-2)', 'var(--series-3)'];
+const STEPS = ['var(--step-1)', 'var(--step-2)', 'var(--step-3)'];
+
+export const seriesColor = (i) => SERIES[i % SERIES.length];
+export const stepColor = (i) => STEPS[i % STEPS.length];
+
+/* --------------------------------------------------------- formatadores -- */
+
+const nf0 = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 });
+const nf1 = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const nf2 = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+export const fmtInt = (n) => (n == null ? '—' : nf0.format(n));
+export const fmtPct = (n, d = 1) => (n == null ? '—' : (d === 2 ? nf2 : nf1).format(n) + '%');
+
+export function fmtMoney(n, { cents = false } = {}) {
+  if (n == null) return '—';
+  return 'US$ ' + (cents ? nf2 : nf0).format(n);
+}
+
+/** Horas em algo que se lê. Abaixo de 1h vira minuto; acima de 48h vira dia. */
+export function fmtHours(h) {
+  if (h == null) return '—';
+  if (h < 1) return `${Math.round(h * 60)} min`;
+  if (h < 48) return `${nf1.format(h)} h`;
+  return `${nf1.format(h / 24)} d`;
+}
+
+const MES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+const DIA = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+
+const parseDay = (iso) => {
+  const [y, m, d] = String(iso).slice(0, 10).split('-').map(Number);
+  return new Date(y, m - 1, d);
+};
+
+export const fmtDay = (iso) => { const d = parseDay(iso); return `${d.getDate()} ${MES[d.getMonth()]}`; };
+export const fmtDayShort = (iso) => { const d = parseDay(iso); return `${DIA[d.getDay()]} ${d.getDate()}`; };
+export const fmtWeekday = (iso) => DIA[parseDay(iso).getDay()];
+
+export function fmtRange(from, to) { return `${fmtDay(from)} a ${fmtDay(to)}`; }
+
+export function fmtStamp(iso) {
+  const d = new Date(iso);
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getDate()} ${MES[d.getMonth()]}, ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+export const esc = (s) => String(s ?? '')
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+/* -------------------------------------------------------------- pedaços -- */
+
+/** Um cartão de número. `delta` vem de metrics.change(); `status` de goalStatus(). */
+export function tile({ label, value, unit, delta, deltaLabel, status, statusLabel, hero, foot }) {
+  const parts = [];
+  if (delta && delta.tone !== 'flat' && delta.delta != null) {
+    const arrow = delta.delta > 0 ? '▲' : '▼';
+    const cls = delta.tone === 'good' ? 'delta--good' : 'delta--bad';
+    parts.push(`<span class="delta ${cls}">${arrow} ${esc(deltaLabel)}</span>`);
+  } else if (delta && delta.delta != null) {
+    parts.push(`<span class="delta delta--flat">sem variação</span>`);
+  }
+  if (status && status !== 'none') parts.push(statusChip(status, statusLabel));
+  if (foot) parts.push(`<span>${esc(foot)}</span>`);
+
+  return `<article class="kpi${hero ? ' kpi--hero' : ''}">
+    <p class="kpi__label">${esc(label)}</p>
+    <p class="kpi__value">${esc(value)}${unit ? `<span class="unit">${esc(unit)}</span>` : ''}</p>
+    ${parts.length ? `<div class="kpi__foot">${parts.join('')}</div>` : ''}
+  </article>`;
+}
+
+const CHIP_WORD = { good: 'na meta', warn: 'atenção', crit: 'fora da meta', none: 'sem meta' };
+
+/** A cor nunca carrega o estado sozinha — o chip sempre vem com a palavra. */
+export function statusChip(status, label) {
+  const cls = { good: 'chip--good', warn: 'chip--warn', crit: 'chip--crit', none: 'chip--none' }[status] ?? 'chip--none';
+  return `<span class="chip ${cls}">${esc(label ?? CHIP_WORD[status] ?? status)}</span>`;
+}
+
+export function legend(items, { line = false } = {}) {
+  return `<div class="legend">${items.map((i) =>
+    `<span class="legend__item"><span class="legend__key${line ? ' legend__key--line' : ''}" style="background:${i.color}"></span>${esc(i.label)}</span>`
+  ).join('')}</div>`;
+}
+
+/** Lista de barras deitadas — a forma certa para comparar magnitude entre
+    categorias nomeadas. Uma cor só: a identidade está no rótulo, não no matiz. */
+export function barList(items, { format = fmtInt, color = 'var(--series-1)', max } = {}) {
+  const top = max ?? Math.max(1, ...items.map((i) => i.value ?? 0));
+  return `<div class="bars">${items.map((i) => {
+    const w = Math.max(0, ((i.value ?? 0) / top) * 100);
+    return `<div class="bar" title="${esc(i.label)}: ${esc(format(i.value))}">
+      <span class="bar__label">${esc(i.label)}</span>
+      <span class="bar__track"><span class="bar__fill" style="width:${w.toFixed(2)}%;background:${i.color ?? color}"></span></span>
+      <span class="bar__value">${esc(format(i.value))}${i.sub ? `<span class="cell-sub">${esc(i.sub)}</span>` : ''}</span>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+/* ------------------------------------------------------- barra empilhada -- */
+
+/** Uma barra horizontal particionada. O vão de 2px entre segmentos é a folha
+    de superfície que impede duas cores vizinhas de se lerem como uma só. */
+export function stackedRow(segments, { height = 26, format = fmtInt } = {}) {
+  const total = segments.reduce((t, s) => t + s.value, 0) || 1;
+  const cells = segments.filter((s) => s.value > 0).map((s) => {
+    const pct = (s.value / total) * 100;
+    return `<span class="tt-seg" style="flex:0 0 ${pct.toFixed(3)}%;background:${s.color};height:${height}px"
+      title="${esc(s.label)}: ${esc(format(s.value))} (${nf1.format(pct)}%)"></span>`;
+  }).join('');
+  return `<div style="display:flex;gap:2px;border-radius:999px;overflow:hidden">${cells}</div>`;
+}
+
+/* ---------------------------------------------------------- linhas ------- */
+
+const W = 780, PAD = { t: 16, r: 16, b: 30, l: 44 };
+
+function niceTop(max) {
+  if (max <= 0) return 10;
+  const mag = 10 ** Math.floor(Math.log10(max));
+  return Math.ceil(max / (mag / 2)) * (mag / 2);
+}
+
+/**
+ * Gráfico de linhas com camada de hover.
+ *   days   : [iso, …] eixo x
+ *   series : [{ key, label, color, values: [] }, …]
+ * Uma escala só, sempre. Duas medidas de grandeza diferente pedem dois gráficos.
+ */
+export function lineChart({ days, series, height = 250, formatValue = fmtInt, yLabel }) {
+  const H = height;
+  // Com até 4 séries cada linha ganha rótulo na ponta, e o rótulo precisa de
+  // margem para caber — senão ele sai pela borda do viewBox.
+  const direct = series.length <= 4;
+  const padR = direct ? 92 : PAD.r;
+  const iw = W - PAD.l - padR, ih = H - PAD.t - PAD.b;
+  const maxV = Math.max(1, ...series.flatMap((s) => s.values.filter((v) => v != null)));
+  const top = niceTop(maxV);
+
+  const x = (i) => PAD.l + (days.length === 1 ? iw / 2 : (i / (days.length - 1)) * iw);
+  const y = (v) => PAD.t + ih - (v / top) * ih;
+
+  const ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => Math.round(top * f));
+  const grid = ticks.map((t) => `
+    <line class="gridline" x1="${PAD.l}" y1="${y(t).toFixed(1)}" x2="${W - padR}" y2="${y(t).toFixed(1)}"/>
+    <text class="tick" x="${PAD.l - 8}" y="${(y(t) + 3.5).toFixed(1)}" text-anchor="end">${formatValue(t)}</text>`).join('');
+
+  const every = days.length > 10 ? 2 : 1;
+  const xlabels = days.map((d, i) => (i % every === 0 || i === days.length - 1)
+    ? `<text class="tick" x="${x(i).toFixed(1)}" y="${H - 10}" text-anchor="middle">${esc(fmtDayShort(d))}</text>` : '').join('');
+
+  const paths = series.map((s) => {
+    const pts = s.values.map((v, i) => (v == null ? null : `${x(i).toFixed(1)},${y(v).toFixed(1)}`)).filter(Boolean);
+    if (!pts.length) return '';
+    const last = s.values.length - 1;
+    // Rótulo direto na ponta: com até 4 séries a identidade não precisa
+    // depender só do quadradinho da legenda.
+    const label = series.length <= 4 && s.values[last] != null
+      ? `<text x="${(x(last) + 6).toFixed(1)}" y="${(y(s.values[last]) + 3.5).toFixed(1)}"
+             font-size="10.5" font-weight="600" fill="${s.color}">${esc(s.label)}</text>` : '';
+    return `<polyline fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round"
+              stroke-linecap="round" points="${pts.join(' ')}"/>${label}`;
+  }).join('');
+
+  // Faixas de acerto: uma por dia, largas o bastante para o mouse pegar.
+  const bandW = iw / Math.max(1, days.length - 1);
+  const hits = days.map((d, i) => {
+    const payload = series.map((s) => ({ label: s.label, color: s.color, value: s.values[i] }));
+    const data = esc(JSON.stringify({ title: fmtDay(d), rows: payload }));
+    return `<rect class="hit" data-tt="${data}" data-x="${x(i).toFixed(1)}"
+      x="${(x(i) - bandW / 2).toFixed(1)}" y="${PAD.t}" width="${bandW.toFixed(1)}" height="${ih}"/>`;
+  }).join('');
+
+  const dots = series.map((s, si) => s.values.map((v, i) => v == null ? '' :
+    `<circle class="dot" data-dot="${i}" r="4" cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}"
+      fill="${s.color}" opacity="0"/>`).join('')).join('');
+
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img"
+      aria-label="${esc(yLabel ?? 'Série temporal')}" data-chart="line">
+    ${grid}
+    <line class="baseline" x1="${PAD.l}" y1="${y(0).toFixed(1)}" x2="${W - padR}" y2="${y(0).toFixed(1)}"/>
+    ${xlabels}
+    <line class="crosshair" y1="${PAD.t}" y2="${PAD.t + ih}" x1="0" x2="0" opacity="0"/>
+    ${paths}${dots}${hits}
+  </svg>`;
+}
+
+/** Colunas verticais para uma medida só, por dia. Ponta arredondada em 4px,
+    ancorada na linha de base — nunca uma cápsula solta no ar. */
+export function columnChart({ days, values, height = 200, color = 'var(--series-1)', formatValue = fmtInt, label }) {
+  const H = height;
+  const iw = W - PAD.l - PAD.r, ih = H - PAD.t - PAD.b;
+  const top = niceTop(Math.max(1, ...values.filter((v) => v != null)));
+  const y = (v) => PAD.t + ih - (v / top) * ih;
+  const slot = iw / days.length;
+  const bw = Math.min(38, slot * 0.6);
+
+  const ticks = [0, 0.5, 1].map((f) => Math.round(top * f));
+  const grid = ticks.map((t) => `
+    <line class="gridline" x1="${PAD.l}" y1="${y(t).toFixed(1)}" x2="${W - PAD.r}" y2="${y(t).toFixed(1)}"/>
+    <text class="tick" x="${PAD.l - 8}" y="${(y(t) + 3.5).toFixed(1)}" text-anchor="end">${formatValue(t)}</text>`).join('');
+
+  const bars = values.map((v, i) => {
+    const cx = PAD.l + slot * i + slot / 2;
+    const h = Math.max(0, PAD.t + ih - y(v ?? 0));
+    const data = esc(JSON.stringify({ title: fmtDay(days[i]), rows: [{ label, color, value: v }] }));
+    return `<rect class="hit" data-tt="${data}" x="${(cx - slot / 2).toFixed(1)}" y="${PAD.t}" width="${slot.toFixed(1)}" height="${ih}"/>
+      <rect x="${(cx - bw / 2).toFixed(1)}" y="${y(v ?? 0).toFixed(1)}" width="${bw.toFixed(1)}"
+        height="${h.toFixed(1)}" rx="4" fill="${color}" pointer-events="none"/>`;
+  }).join('');
+
+  const xlabels = days.map((d, i) =>
+    `<text class="tick" x="${(PAD.l + slot * i + slot / 2).toFixed(1)}" y="${H - 10}" text-anchor="middle">${esc(fmtDayShort(d))}</text>`).join('');
+
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(label ?? '')}" data-chart="col">
+    ${grid}${bars}
+    <line class="baseline" x1="${PAD.l}" y1="${y(0).toFixed(1)}" x2="${W - PAD.r}" y2="${y(0).toFixed(1)}"/>
+    ${xlabels}
+  </svg>`;
+}
+
+/* --------------------------------------------------------------- hover --- */
+
+let tipEl = null;
+
+function showTip(html, ev) {
+  if (!tipEl) tipEl = document.getElementById('tooltip');
+  if (!tipEl) return;
+  tipEl.innerHTML = html;
+  tipEl.hidden = false;
+  const r = tipEl.getBoundingClientRect();
+  let left = ev.clientX + 14, tp = ev.clientY - r.height - 12;
+  if (left + r.width > innerWidth - 8) left = ev.clientX - r.width - 14;
+  if (tp < 8) tp = ev.clientY + 18;
+  tipEl.style.left = `${Math.max(8, left)}px`;
+  tipEl.style.top = `${tp}px`;
+}
+
+function hideTip() { if (tipEl) tipEl.hidden = true; }
+
+/** Liga a camada de hover em todo gráfico dentro de `root`. Chamado depois de
+    cada render — os SVG são recriados a cada troca de filtro. */
+export function wireCharts(root) {
+  root.querySelectorAll('svg[data-chart]').forEach((svg) => {
+    const cross = svg.querySelector('.crosshair');
+    const dots = svg.querySelectorAll('.dot');
+
+    svg.querySelectorAll('.hit').forEach((hit, idx) => {
+      hit.addEventListener('mousemove', (ev) => {
+        let payload;
+        try { payload = JSON.parse(hit.dataset.tt); } catch { return; }
+        const rows = payload.rows
+          .filter((r) => r.value != null)
+          .map((r) => `<span class="tt-row"><span class="tt-key"><span class="tt-dot" style="background:${r.color}"></span>${esc(r.label)}</span><span class="tt-val">${esc(typeof r.value === 'number' ? nf0.format(r.value) : r.value)}</span></span>`)
+          .join('');
+        showTip(`<b>${esc(payload.title)}</b>${rows}`, ev);
+
+        if (cross && hit.dataset.x) {
+          cross.setAttribute('x1', hit.dataset.x);
+          cross.setAttribute('x2', hit.dataset.x);
+          cross.setAttribute('opacity', '1');
+        }
+        dots.forEach((d) => d.setAttribute('opacity', d.dataset.dot === String(idx) ? '1' : '0'));
+      });
+      hit.addEventListener('mouseleave', () => {
+        hideTip();
+        if (cross) cross.setAttribute('opacity', '0');
+        dots.forEach((d) => d.setAttribute('opacity', '0'));
+      });
+    });
+  });
+
+  root.addEventListener('scroll', hideTip, { passive: true });
+}
