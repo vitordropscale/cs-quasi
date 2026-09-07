@@ -33,14 +33,14 @@ async function grab(file) {
   try {
     res = await fetch(url);
   } catch (err) {
-    throw new Error(`Não consegui buscar ${file}. Se você abriu o index.html com dois cliques, ` +
-      `é isso: o navegador bloqueia fetch() em file://. Use o serve.ps1. (${err.message})`);
+    throw new Error(`Could not fetch ${file}. If you opened index.html by double-clicking it, ` +
+      `that is why: browsers block fetch() on file://. Serve it over HTTP. (${err.message})`);
   }
-  if (!res.ok) throw new Error(`${file} respondeu ${res.status}.`);
+  if (!res.ok) throw new Error(`${file} answered ${res.status}.`);
   try {
     return await res.json();
   } catch (err) {
-    throw new Error(`${file} não é JSON válido. (${err.message})`);
+    throw new Error(`${file} is not valid JSON. (${err.message})`);
   }
 }
 
@@ -80,8 +80,9 @@ function normalize(raw) {
     else if ((r.resolution_hours?.length ?? 0) !== r.closed) badArrays++;
   }
   if (badArrays) {
-    warnings.push(`${badArrays} linha(s) de tickets-daily.json têm arrays de duração com tamanho ` +
-      `diferente da contagem. As medianas dessas linhas não representam o que a contagem diz.`);
+    warnings.push(`${badArrays} row(s) in tickets-daily.json carry duration arrays whose length ` +
+      `does not match the count. The medians for those rows describe a different set of tickets ` +
+      `than the count claims.`);
   }
 
   // 2. As faixas de idade particionam o backlog — se não somam, o gráfico de
@@ -90,8 +91,8 @@ function normalize(raw) {
   if (ag) {
     const soma = (ag.under_24h ?? 0) + (ag.h24_to_72h ?? 0) + (ag.over_72h ?? 0);
     if (soma !== queue.summary.backlog) {
-      warnings.push(`As faixas de idade da fila somam ${soma}, mas o backlog é ` +
-        `${queue.summary.backlog}. Elas deveriam particionar o backlog.`);
+      warnings.push(`The queue age buckets add up to ${soma}, but the backlog is ` +
+        `${queue.summary.backlog}. They are supposed to partition it.`);
     }
   }
 
@@ -99,7 +100,7 @@ function normalize(raw) {
   //    por atendente e o total do dia contam coisas diferentes.
   const somaAgentes = (queue.agents ?? []).reduce((t, a) => t + (a.answered ?? 0), 0);
   if (somaAgentes !== queue.summary?.answered_today) {
-    warnings.push(`Os atendentes somam ${somaAgentes} respondidos, mas o snapshot diz ` +
+    warnings.push(`The agents add up to ${somaAgentes} answered, but the snapshot says ` +
       `${queue.summary?.answered_today}.`);
   }
 
@@ -108,7 +109,7 @@ function normalize(raw) {
   for (const r of rows) if (!reasonById.has(r.reason)) orfaos.add(r.reason);
   for (const r of queue.by_reason ?? []) if (!reasonById.has(r.reason)) orfaos.add(r.reason);
   if (orfaos.size) {
-    warnings.push(`Motivos que aparecem nos dados mas não estão em reasons.json: ${[...orfaos].join(', ')}.`);
+    warnings.push(`Reasons present in the data but missing from reasons.json: ${[...orfaos].join(', ')}.`);
   }
 
   if (warnings.length) for (const w of warnings) console.warn('[dados]', w);

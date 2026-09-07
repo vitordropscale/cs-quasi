@@ -16,7 +16,6 @@ export function renderOverview(data, state) {
   const prev = cmp ? M.ticketKpis(rows, { ...cmp, reason: state.reason }) : null;
 
   const money = M.revenueIn(revenue, w.from, w.to);
-  const moneyPrev = cmp ? M.revenueIn(revenue, cmp.from, cmp.to) : null;
   const ref = M.refundsIn(refunds, w.from, w.to);
   const repl = M.replacementsIn(replacements, w.from, w.to);
   const refRate = M.refundRate(refunds, revenue, w.from, w.to);
@@ -37,33 +36,32 @@ export function renderOverview(data, state) {
   const dFrt = d(cur.frtMedian, prev?.frtMedian, 'lower_is_better');
   const dU24 = d(cur.pctUnder24, prev?.pctUnder24, 'higher_is_better');
   const dRes = d(cur.resMedian, prev?.resMedian, 'lower_is_better');
-  const dReopen = d(cur.reopenRate, prev?.reopenRate, 'lower_is_better');
   const dRefund = d(refRate, refRatePrev, 'lower_is_better');
   const dCb = d(cbRate, cbRatePrev, 'lower_is_better');
 
   const kpisTop = [
     tile({
-      hero: true, label: 'Conversas recebidas', value: fmtInt(cur.created),
+      hero: true, label: 'Conversations received', value: fmtInt(cur.created),
       delta: dCreated, deltaLabel: lbl(dCreated, fmtInt),
-      foot: `${fmtInt(cur.answered)} respondidas · ${fmtInt(cur.closed)} fechadas`,
+      foot: `${fmtInt(cur.answered)} answered · ${fmtInt(cur.closed)} closed`,
     }),
     tile({
-      label: 'Primeira resposta', value: fmtHours(cur.frtMedian), unit: 'mediana',
+      label: 'First response', value: fmtHours(cur.frtMedian), unit: 'median',
       delta: dFrt, deltaLabel: lbl(dFrt, fmtHours),
       status: M.goalStatus(cur.frtMedian, t.frt_median_hours),
-      foot: `9 em cada 10 em até ${fmtHours(cur.frtP90)}`,
+      foot: `9 in 10 within ${fmtHours(cur.frtP90)}`,
     }),
     tile({
-      label: 'Respondidos em até 24h', value: fmtPct(cur.pctUnder24),
+      label: 'Answered within 24h', value: fmtPct(cur.pctUnder24),
       delta: dU24, deltaLabel: lbl(dU24, (v) => fmtPct(v)),
       status: M.goalStatus(cur.pctUnder24, t.pct_answered_under_24h),
-      foot: `${fmtInt(cur.frt.length - M.countUnder(cur.frt, 24))} passaram de um dia`,
+      foot: `${fmtInt(cur.frt.length - M.countUnder(cur.frt, 24))} waited more than a day`,
     }),
     tile({
-      label: 'Resolução', value: fmtHours(cur.resMedian), unit: 'mediana',
+      label: 'Resolution', value: fmtHours(cur.resMedian), unit: 'median',
       delta: dRes, deltaLabel: lbl(dRes, fmtHours),
       status: M.goalStatus(cur.resMedian, t.resolution_median_hours),
-      foot: `${fmtInt(cur.closed)} conversas fechadas`,
+      foot: `${fmtInt(cur.closed)} conversations closed`,
     }),
   ].join('');
 
@@ -72,30 +70,30 @@ export function renderOverview(data, state) {
   // retrato, o cartão precisa dizer isso, senão o número parece do período.
   const snapDia = fmtDay(data.queue.snapshot_at);
   const foraDoPeriodo = state.periodId !== 'current';
-  const notaFila = foraDoPeriodo ? ` · retrato de ${snapDia}, não do período escolhido` : '';
+  const notaFila = foraDoPeriodo ? ` · snapshot of ${snapDia}, not of the period you picked` : '';
 
   const kpisBottom = [
     tile({
-      label: 'Fila no fechamento', value: fmtInt(queue.summary.backlog),
+      label: 'Queue at close', value: fmtInt(queue.summary.backlog),
       status: foraDoPeriodo ? null : M.goalStatus(queue.summary.backlog, t.backlog),
-      foot: `${fmtInt(queue.summary.aging.over_72h)} esperando há mais de 3 dias${notaFila}`,
+      foot: `${fmtInt(queue.summary.aging.over_72h)} waiting more than 3 days${notaFila}`,
     }),
     tile({
-      label: 'Sem resposta há +24h', value: fmtInt(queue.summary.over_24h_unanswered),
+      label: 'No reply for 24h+', value: fmtInt(queue.summary.over_24h_unanswered),
       status: foraDoPeriodo ? null : M.goalStatus(queue.summary.over_24h_unanswered, t.over_24h_unanswered),
-      foot: `nenhuma resposta humana ainda${notaFila}`,
+      foot: `still no human reply${notaFila}`,
     }),
     tile({
-      label: 'Taxa de reembolso', value: fmtPct(refRate, 2),
+      label: 'Refund rate', value: fmtPct(refRate, 2),
       delta: dRefund, deltaLabel: lbl(dRefund, (v) => fmtPct(v, 2)),
       status: M.goalStatus(refRate, t.refund_rate),
-      foot: `${fmtMoney(ref.total)} sobre ${fmtMoney(money.revenue)}`,
+      foot: `${fmtMoney(ref.total)} against ${fmtMoney(money.revenue)}`,
     }),
     tile({
-      label: 'Taxa de chargeback', value: fmtPct(cbRate, 2),
+      label: 'Chargeback rate', value: fmtPct(cbRate, 2),
       delta: dCb, deltaLabel: lbl(dCb, (v) => fmtPct(v, 2)),
       status: M.goalStatus(cbRate, t.chargeback_rate),
-      foot: `${fmtInt(M.chargebacksOpenedIn(chargebacks, w.from, w.to).count)} disputas em ${fmtInt(money.orders)} pedidos`,
+      foot: `${fmtInt(M.chargebacksOpenedIn(chargebacks, w.from, w.to).count)} disputes in ${fmtInt(money.orders)} orders`,
     }),
   ].join('');
 
@@ -105,17 +103,17 @@ export function renderOverview(data, state) {
   const volume = lineChart({
     days: dayList,
     series: [
-      { key: 'created', label: 'Recebidas', color: seriesColor(0), values: days.map((x) => x.created) },
-      { key: 'answered', label: 'Respondidas', color: seriesColor(1), values: days.map((x) => x.answered) },
-      { key: 'closed', label: 'Fechadas', color: seriesColor(2), values: days.map((x) => x.closed) },
+      { key: 'created', label: 'Received', color: seriesColor(0), values: days.map((x) => x.created) },
+      { key: 'answered', label: 'Answered', color: seriesColor(1), values: days.map((x) => x.answered) },
+      { key: 'closed', label: 'Closed', color: seriesColor(2), values: days.map((x) => x.closed) },
     ],
-    yLabel: 'Conversas por dia',
+    yLabel: 'Conversations per day',
   });
 
   const frtCols = columnChart({
     days: dayList,
     values: days.map((x) => (x.frtMedian == null ? null : Math.round(x.frtMedian * 10) / 10)),
-    label: 'Primeira resposta (mediana)',
+    label: 'First response (median)',
     formatValue: (v) => `${v}h`,
     color: 'var(--series-1)',
   });
@@ -123,6 +121,8 @@ export function renderOverview(data, state) {
   /* ------------------------------------------------------- por motivo --- */
 
   const totalCreated = M.sum(perReason.map((r) => r.created));
+  const geral = M.ticketKpis(rows, w);
+
   const motivoBars = barList(
     perReason.map((r) => ({
       label: r.label, value: r.created,
@@ -133,10 +133,10 @@ export function renderOverview(data, state) {
 
   const motivoTable = `<div class="tablewrap"><table>
     <thead><tr>
-      <th>Motivo do contato</th>
-      <th class="num">Recebidas</th><th class="num">Fatia</th>
-      <th class="num">1ª resposta</th><th class="num">Até 24h</th>
-      <th class="num">Resolução</th><th class="num">Reabertura</th>
+      <th>Contact reason</th>
+      <th class="num">Received</th><th class="num">Share</th>
+      <th class="num">1st reply</th><th class="num">Within 24h</th>
+      <th class="num">Resolution</th><th class="num">Reopened</th>
     </tr></thead>
     <tbody>${perReason.map((r) => `
       <tr${r.reason === state.reason ? ' style="background:var(--rose-tint)"' : ''}>
@@ -150,32 +150,32 @@ export function renderOverview(data, state) {
       </tr>`).join('')}
     </tbody>
     <tfoot><tr>
-      <td>Total / ponderado</td>
+      <td>Total / weighted</td>
       <td class="num">${fmtInt(totalCreated)}</td>
-      <td class="num">100,0%</td>
-      <td class="num">${fmtHours(M.ticketKpis(rows, w).frtMedian)}</td>
-      <td class="num">${fmtPct(M.ticketKpis(rows, w).pctUnder24)}</td>
-      <td class="num">${fmtHours(M.ticketKpis(rows, w).resMedian)}</td>
-      <td class="num">${fmtPct(M.ticketKpis(rows, w).reopenRate)}</td>
+      <td class="num">100.0%</td>
+      <td class="num">${fmtHours(geral.frtMedian)}</td>
+      <td class="num">${fmtPct(geral.pctUnder24)}</td>
+      <td class="num">${fmtHours(geral.resMedian)}</td>
+      <td class="num">${fmtPct(geral.reopenRate)}</td>
     </tr></tfoot>
   </table></div>`;
 
   /* ------------------------------------------------ reembolso e troca --- */
 
   const REF_LABEL = {
-    not_delivered: 'Não entregue', damaged_in_transit: 'Danificado no transporte',
-    quality_issue: 'Qualidade do produto', adverse_reaction: 'Reação na pele',
-    late_delivery: 'Entrega atrasada', wrong_item: 'Item errado',
-    changed_mind: 'Desistência', subscription_charge: 'Cobrança de assinatura',
-    missing_part: 'Item faltando no kit',
+    not_delivered: 'Never delivered', damaged_in_transit: 'Damaged in transit',
+    quality_issue: 'Product quality', adverse_reaction: 'Skin reaction',
+    late_delivery: 'Late delivery', wrong_item: 'Wrong item',
+    changed_mind: 'Changed their mind', subscription_charge: 'Subscription charge',
+    missing_part: 'Item missing from the kit',
   };
 
   const dinheiro = `
     <dl class="stat-inline">
-      <div><dt>Reembolsado</dt><dd>${fmtMoney(ref.total)}<span class="sub">${fmtInt(ref.count)} reembolsos · média ${fmtMoney(ref.average, { cents: true })}</span></dd></div>
-      <div><dt>Parciais</dt><dd>${fmtPct(ref.partialShare)}<span class="sub">devolução parcial em vez de total</span></dd></div>
-      <div><dt>Reposições</dt><dd>${fmtMoney(repl.total)}<span class="sub">${fmtInt(repl.count)} envios · ${fmtInt(repl.repeats)} pela segunda vez</span></dd></div>
-      <div><dt>Custo total do problema</dt><dd>${fmtMoney(ref.total + repl.total)}<span class="sub">${fmtPct(M.percent(ref.total + repl.total, money.revenue), 2)} da receita</span></dd></div>
+      <div><dt>Refunded</dt><dd>${fmtMoney(ref.total)}<span class="sub">${fmtInt(ref.count)} refunds · ${fmtMoney(ref.average, { cents: true })} average</span></dd></div>
+      <div><dt>Partial</dt><dd>${fmtPct(ref.partialShare)}<span class="sub">part of the order kept, not all of it</span></dd></div>
+      <div><dt>Replacements</dt><dd>${fmtMoney(repl.total)}<span class="sub">${fmtInt(repl.count)} shipped · ${fmtInt(repl.repeats)} for the second time</span></dd></div>
+      <div><dt>Total cost of going wrong</dt><dd>${fmtMoney(ref.total + repl.total)}<span class="sub">${fmtPct(M.percent(ref.total + repl.total, money.revenue), 2)} of revenue</span></dd></div>
     </dl>`;
 
   const refBars = barList(
@@ -206,7 +206,7 @@ export function renderOverview(data, state) {
   };
 
   const metas = `<div class="tablewrap"><table>
-    <thead><tr><th>Meta</th><th class="num">Agora</th><th class="num">Meta</th><th class="num">Limite</th><th>Situação</th></tr></thead>
+    <thead><tr><th>Target</th><th class="num">Now</th><th class="num">Goal</th><th class="num">Limit</th><th>Standing</th></tr></thead>
     <tbody>${Object.entries(t).map(([id, target]) => {
       const v = valores[id];
       const st = M.goalStatus(v, target);
@@ -215,17 +215,20 @@ export function renderOverview(data, state) {
         <td class="num"><b>${unidade(v, target.unit)}</b></td>
         <td class="num">${unidade(target.goal, target.unit)}</td>
         <td class="num">${unidade(target.warning, target.unit)}</td>
-        <td style="text-align:left">${statusChip(st, v == null && foraDoPeriodo ? 'sem retrato' : null)}</td>
+        <td style="text-align:left">${statusChip(st, v == null && foraDoPeriodo ? 'no snapshot' : null)}</td>
       </tr>`;
     }).join('')}</tbody>
   </table></div>
-  <p class="note">Os limiares vivem em <code>data/meta.json</code>. Mudar um alvo muda o chip desta tabela sem tocar em código; tirar uma linha do arquivo tira a linha daqui.${
-    foraDoPeriodo ? ` <b>Fila</b> e <b>sem resposta há +24h</b> aparecem como traço: são medidas do retrato de ${esc(snapDia)}, e não existe retrato do período que você escolheu.` : ''}</p>`;
+  <p class="note">The thresholds live in <code>data/meta.json</code>. Changing a goal changes the
+  chip in this table with no code change; deleting an entry deletes the row.${
+    foraDoPeriodo ? ` <b>Queue at period end</b> and <b>open 24h+ with no reply</b> read as a dash:
+    they are measurements from the ${esc(snapDia)} snapshot, and there is no snapshot for the period you picked.` : ''}</p>`;
 
   /* ------------------------------------------------------------ monta --- */
 
   const escopo = state.reason
-    ? `<p class="note note--scoped">Filtrado por <b>${esc(reasonLabel)}</b>. Reembolsos, reposições e chargebacks não carregam motivo de contato — esses blocos continuam mostrando o período inteiro.</p>`
+    ? `<p class="note note--scoped">Filtered to <b>${esc(reasonLabel)}</b>. Refunds, replacements and
+       chargebacks do not carry a contact reason — those blocks still show the whole period.</p>`
     : '';
 
   return `
@@ -236,16 +239,18 @@ export function renderOverview(data, state) {
     <section class="card">
       <div class="card__head">
         <div>
-          <h2 class="card__title">Volume por dia</h2>
-          <p class="card__note">Recebidas é quando a conversa nasce; respondidas é quando alguém de verdade respondeu. Os dias em que a linha rosa passa da âmbar são os dias em que a fila cresceu.</p>
+          <h2 class="card__title">Volume by day</h2>
+          <p class="card__note">Received is when a conversation is born; answered is when a person
+          actually replied to it. The days where the rose line sits above the amber one are the days
+          the queue grew.</p>
         </div>
         <span class="card__aside">${esc(fmtRange(w.from, w.to))}</span>
       </div>
       <div class="card__body">${volume}
         ${legend([
-          { label: 'Recebidas', color: seriesColor(0) },
-          { label: 'Respondidas', color: seriesColor(1) },
-          { label: 'Fechadas', color: seriesColor(2) },
+          { label: 'Received', color: seriesColor(0) },
+          { label: 'Answered', color: seriesColor(1) },
+          { label: 'Closed', color: seriesColor(2) },
         ], { line: true })}
       </div>
     </section>
@@ -253,19 +258,21 @@ export function renderOverview(data, state) {
     <div class="grid grid--2">
       <section class="card">
         <div class="card__head"><div>
-          <h2 class="card__title">Tempo até a primeira resposta</h2>
-          <p class="card__note">Mediana do dia, em horas. Calculada sobre o conjunto real de conversas respondidas naquele dia.</p>
+          <h2 class="card__title">Time to first response</h2>
+          <p class="card__note">The day's median, in hours. Computed over the actual set of
+          conversations answered that day.</p>
         </div></div>
         <div class="card__body">${frtCols}</div>
       </section>
 
       <section class="card">
         <div class="card__head"><div>
-          <h2 class="card__title">Reembolsos e reposições</h2>
-          <p class="card__note">A taxa de reembolso é dinheiro sobre dinheiro — valor devolvido dividido pela receita do mesmo período. Nunca reembolsos ÷ conversas.</p>
+          <h2 class="card__title">Refunds and replacements</h2>
+          <p class="card__note">Refund rate is money over money — the amount given back divided by
+          revenue for the same window. Never refunds ÷ conversations.</p>
         </div></div>
         <div class="card__body">${dinheiro}
-          <h3 style="font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:22px 0 12px">Motivo do reembolso</h3>
+          <h3 style="font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:22px 0 12px">Reason for the refund</h3>
           ${refBars}
         </div>
       </section>
@@ -273,18 +280,20 @@ export function renderOverview(data, state) {
 
     <section class="card">
       <div class="card__head"><div>
-        <h2 class="card__title">Por que as pessoas escrevem</h2>
-        <p class="card__note">Com uma loja só, o motivo do contato é o eixo de comparação do portal. Esta tabela ignora o filtro de propósito — ela é a comparação.</p>
+        <h2 class="card__title">Why people write in</h2>
+        <p class="card__note">With a single store, the contact reason is this portal's axis of
+        comparison. This table ignores the filter on purpose — it <i>is</i> the comparison.</p>
       </div></div>
       <div class="card__body">${motivoBars}<div style="margin-top:24px">${motivoTable}</div>
-        <p class="note">A linha de total é recalculada sobre todas as conversas reunidas, não é a média das células acima. Contagem soma; mediana e porcentagem, não.</p>
+        <p class="note">The total row is recomputed over every conversation pooled together — it is
+        not the average of the cells above it. Counts add up; medians and percentages do not.</p>
       </div>
     </section>
 
     <section class="card">
       <div class="card__head"><div>
-        <h2 class="card__title">Metas</h2>
-        <p class="card__note">Onde cada número caiu em relação ao que foi combinado.</p>
+        <h2 class="card__title">Targets</h2>
+        <p class="card__note">Where each number landed against what was agreed.</p>
       </div></div>
       <div class="card__body">${metas}</div>
     </section>

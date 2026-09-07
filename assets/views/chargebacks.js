@@ -14,18 +14,18 @@ import {
 } from '../charts.js';
 
 const REASON = {
-  fraud_unauthorised: 'Fraude / não autorizada',
-  product_not_received: 'Produto não recebido',
-  product_not_as_described: 'Produto diferente do anunciado',
-  subscription_not_cancelled: 'Assinatura não cancelada',
-  duplicate_charge: 'Cobrança duplicada',
-  credit_not_processed: 'Crédito não processado',
-  unrecognised_descriptor: 'Não reconheceu a cobrança',
+  fraud_unauthorised: 'Fraud / unauthorised',
+  product_not_received: 'Product not received',
+  product_not_as_described: 'Not as described',
+  subscription_not_cancelled: 'Subscription not cancelled',
+  duplicate_charge: 'Duplicate charge',
+  credit_not_processed: 'Credit not processed',
+  unrecognised_descriptor: 'Did not recognise the charge',
 };
 const NETWORK = { visa: 'Visa', mastercard: 'Mastercard', amex: 'Amex', paypal: 'PayPal' };
 const STATUS = {
-  open: 'Recebida', under_review: 'Em análise no banco',
-  won: 'Ganha', lost: 'Perdida', accepted: 'Aceita sem contestar',
+  open: 'Received', under_review: 'With the bank',
+  won: 'Won', lost: 'Lost', accepted: 'Accepted without contesting',
 };
 
 export function renderChargebacks(data, state) {
@@ -47,47 +47,47 @@ export function renderChargebacks(data, state) {
 
   const kpis = [
     tile({
-      hero: true, label: 'Taxa de chargeback', value: fmtPct(rate, 2),
+      hero: true, label: 'Chargeback rate', value: fmtPct(rate, 2),
       delta: dRate, deltaLabel: dRate.delta == null ? '' : fmtPct(Math.abs(dRate.delta), 2),
       status: M.goalStatus(rate, meta.targets.chargeback_rate),
-      foot: `${fmtInt(abertos.count)} disputas em ${fmtInt(money.orders)} pedidos`,
+      foot: `${fmtInt(abertos.count)} disputes in ${fmtInt(money.orders)} orders`,
     }),
     tile({
-      label: 'Valor disputado no período', value: fmtMoney(abertos.amount),
-      foot: `${fmtPct(valorRate, 2)} da receita — a razão em dinheiro, que não é a que dispara nada`,
+      label: 'Amount disputed this period', value: fmtMoney(abertos.amount),
+      foot: `${fmtPct(valorRate, 2)} of revenue — the money ratio, which is not the one that triggers anything`,
     }),
     tile({
-      label: 'Parado no banco agora', value: fmtInt(st.pending.length),
-      foot: `${fmtMoney(st.pendingAmount)} sem decisão`,
+      label: 'Sitting with the bank', value: fmtInt(st.pending.length),
+      foot: `${fmtMoney(st.pendingAmount)} undecided`,
     }),
     tile({
-      label: 'Aproveitamento', value: fmtPct(st.winRate),
-      foot: `${fmtInt(st.won.length)} ganhas de ${fmtInt(st.decided.length)} decididas`,
+      label: 'Win rate', value: fmtPct(st.winRate),
+      foot: `${fmtInt(st.won.length)} won of ${fmtInt(st.decided.length)} decided`,
     }),
   ].join('');
 
   /* -------------------------------------------------------- resultado -- */
 
   const segmentos = [
-    { label: 'Ganhas', value: st.won.length, color: 'var(--good)' },
-    { label: 'Perdidas', value: st.lost.length, color: 'var(--crit)' },
-    { label: 'Aceitas sem contestar', value: st.accepted.length, color: 'var(--serious)' },
-    { label: 'Ainda pendentes', value: st.pending.length, color: 'var(--axis)' },
+    { label: 'Won', value: st.won.length, color: 'var(--good)' },
+    { label: 'Lost', value: st.lost.length, color: 'var(--crit)' },
+    { label: 'Accepted without contesting', value: st.accepted.length, color: 'var(--serious)' },
+    { label: 'Still pending', value: st.pending.length, color: 'var(--axis)' },
   ];
 
   const resultado = `
     ${stackedRow(segmentos, { height: 30 })}
     ${legend(segmentos.map((s) => ({ label: `${s.label} — ${fmtInt(s.value)}`, color: s.color })))}
     <dl class="stat-inline" style="margin-top:22px">
-      <div><dt>Dinheiro retido</dt><dd>${fmtMoney(st.wonAmount)}<span class="sub">casos ganhos</span></dd></div>
-      <div><dt>Dinheiro perdido</dt><dd>${fmtMoney(st.lostAmount)}<span class="sub">perdidas + aceitas</span></dd></div>
-      <div><dt>Taxas do processador</dt><dd>${fmtMoney(st.fees)}<span class="sub">${fmtInt(chargebacks.length)} casos × US$ 15</span></dd></div>
-      <div><dt>Custo total</dt><dd>${fmtMoney(st.lostAmount + st.fees)}<span class="sub">perdido mais as taxas</span></dd></div>
+      <div><dt>Money kept</dt><dd>${fmtMoney(st.wonAmount)}<span class="sub">cases won</span></dd></div>
+      <div><dt>Money lost</dt><dd>${fmtMoney(st.lostAmount)}<span class="sub">lost plus accepted</span></dd></div>
+      <div><dt>Processor fees</dt><dd>${fmtMoney(st.fees)}<span class="sub">${fmtInt(chargebacks.length)} cases × $15</span></dd></div>
+      <div><dt>Total cost</dt><dd>${fmtMoney(st.lostAmount + st.fees)}<span class="sub">lost plus the fees</span></dd></div>
     </dl>
-    <p class="note">Aproveitamento é ganhas ÷ decididas. As pendentes ficam de fora — contá-las
-    rebaixaria a taxa por nenhum outro motivo além de o tempo ainda não ter passado.
-    A taxa do processador é cobrada dê no que der e não volta numa vitória, por isso ela é somada
-    sobre todos os casos e não só sobre os perdidos.</p>`;
+    <p class="note">Win rate is won ÷ decided. Pending cases are left out — counting them would drag
+    the rate down for no reason other than time not having passed yet. The processor's fee is charged
+    whatever the outcome and is not returned on a win, which is why it is summed across every case
+    and not only the lost ones.</p>`;
 
   /* --------------------------------------------------------- pendentes -- */
 
@@ -96,28 +96,28 @@ export function renderChargebacks(data, state) {
     .sort((a, b) => b.age - a.age);
 
   const tabelaPendentes = pendentes.length === 0
-    ? `<p class="empty">Nenhuma disputa esperando decisão do banco.</p>`
+    ? `<p class="empty">No dispute is waiting on the bank.</p>`
     : `<div class="tablewrap"><table>
       <thead><tr>
-        <th>Caso</th><th>Motivo alegado</th><th>Bandeira</th>
-        <th class="num">Valor</th><th class="num">Idade</th><th>Situação</th><th>Defesa</th>
+        <th>Case</th><th>Reason claimed</th><th>Network</th>
+        <th class="num">Amount</th><th class="num">Age</th><th>Standing</th><th>Evidence</th>
       </tr></thead>
       <tbody>${pendentes.map((c) => `
         <tr>
-          <td>${esc(c.order_id)}<span class="cell-sub">${esc(c.chargeback_id)} · aberta em ${esc(fmtDay(c.opened_at))}</span></td>
+          <td>${esc(c.order_id)}<span class="cell-sub">${esc(c.chargeback_id)} · opened ${esc(fmtDay(c.opened_at))}</span></td>
           <td>${esc(REASON[c.reason] ?? c.reason)}</td>
           <td>${esc(NETWORK[c.network] ?? c.network)}</td>
           <td class="num">${fmtMoney(c.amount_usd, { cents: true })}</td>
           <td class="num">${Math.round(c.age / 24)} d</td>
           <td style="text-align:left">${esc(STATUS[c.status] ?? c.status)}</td>
           <td style="text-align:left">${c.represented
-            ? '<span class="chip chip--good">enviada</span>'
-            : '<span class="chip chip--warn">ainda não enviada</span>'}</td>
+            ? '<span class="chip chip--good">submitted</span>'
+            : '<span class="chip chip--warn">not submitted yet</span>'}</td>
         </tr>`).join('')}
       </tbody></table></div>
-      <p class="note">Idade contada contra o retrato de ${esc(fmtStamp(snap))}. Algumas foram
-      abertas antes da semana relatada e continuam aqui — é dinheiro em risco hoje,
-      independentemente do período que a página está mostrando.</p>`;
+      <p class="note">Age is measured against the ${esc(fmtStamp(snap))} snapshot. Some were opened
+      before the week being reported and are still here — that is money at risk today, whatever
+      period the page happens to be showing.</p>`;
 
   /* ------------------------------------------------------- por motivo -- */
 
@@ -136,48 +136,48 @@ export function renderChargebacks(data, state) {
 
     <section class="card">
       <div class="card__head"><div>
-        <h2 class="card__title">A taxa que as bandeiras olham</h2>
-        <p class="card__note">Chargeback é medido em <b>quantidade ÷ pedidos</b>, não em valor ÷ receita.
-        É essa razão que as bandeiras monitoram e sobre a qual definem limite — é ela que decide se a
-        conta entra em programa de monitoramento. A razão em dinheiro está no cartão ao lado porque é o
-        que o problema custa, mas não é o número que dispara nada.</p>
+        <h2 class="card__title">The ratio the card networks watch</h2>
+        <p class="card__note">Chargebacks are measured as <b>count ÷ orders</b>, not value ÷ revenue.
+        That is the ratio card networks monitor and set thresholds on — it is what decides whether an
+        account enters a monitoring programme. The money ratio sits in the tile beside it because it
+        is what the problem actually costs, but it is not the number that triggers anything.</p>
       </div>
       <span class="card__aside">${esc(fmtRange(w.from, w.to))}</span></div>
       <div class="card__body">
         <dl class="stat-inline">
-          <div><dt>Disputas abertas</dt><dd>${fmtInt(abertos.count)}<span class="sub">no período relatado</span></dd></div>
-          <div><dt>Pedidos</dt><dd>${fmtInt(money.orders)}<span class="sub">denominador da taxa</span></dd></div>
-          <div><dt>Taxa</dt><dd>${fmtPct(rate, 2)}<span class="sub">${statusChip(M.goalStatus(rate, meta.targets.chargeback_rate))}</span></dd></div>
-          <div><dt>Limite de monitoramento</dt><dd>${fmtPct(meta.targets.chargeback_rate.warning, 2)}<span class="sub">onde os programas costumam começar</span></dd></div>
+          <div><dt>Disputes opened</dt><dd>${fmtInt(abertos.count)}<span class="sub">in the reported period</span></dd></div>
+          <div><dt>Orders</dt><dd>${fmtInt(money.orders)}<span class="sub">denominator of the rate</span></dd></div>
+          <div><dt>Rate</dt><dd>${fmtPct(rate, 2)}<span class="sub">${statusChip(M.goalStatus(rate, meta.targets.chargeback_rate))}</span></dd></div>
+          <div><dt>Monitoring threshold</dt><dd>${fmtPct(meta.targets.chargeback_rate.warning, 2)}<span class="sub">where programmes typically begin</span></dd></div>
         </dl>
       </div>
     </section>
 
     <section class="card">
       <div class="card__head"><div>
-        <h2 class="card__title">Onde as disputas estão agora</h2>
-        <p class="card__note">Todas as ${fmtInt(chargebacks.length)} linhas do arquivo, sem recorte de período.</p>
+        <h2 class="card__title">Where the disputes stand today</h2>
+        <p class="card__note">All ${fmtInt(chargebacks.length)} rows in the file, with no period filter.</p>
       </div></div>
       <div class="card__body">${resultado}</div>
     </section>
 
     <div class="grid grid--2">
       <section class="card">
-        <div class="card__head"><div><h2 class="card__title">Motivo alegado</h2></div></div>
+        <div class="card__head"><div><h2 class="card__title">Reason claimed</h2></div></div>
         <div class="card__body">${motivos}</div>
       </section>
       <section class="card">
-        <div class="card__head"><div><h2 class="card__title">Bandeira</h2></div></div>
+        <div class="card__head"><div><h2 class="card__title">Network</h2></div></div>
         <div class="card__body">${redes}</div>
       </section>
     </div>
 
     <section class="card">
       <div class="card__head"><div>
-        <h2 class="card__title">Esperando decisão do banco</h2>
-        <p class="card__note">Dinheiro que ainda pode voltar — ou não.</p>
+        <h2 class="card__title">Waiting on the bank</h2>
+        <p class="card__note">Money that may still come back — or may not.</p>
       </div>
-      <span class="card__aside">${fmtInt(pendentes.length)} casos · ${fmtMoney(st.pendingAmount)}</span></div>
+      <span class="card__aside">${fmtInt(pendentes.length)} cases · ${fmtMoney(st.pendingAmount)}</span></div>
       <div class="card__body">${tabelaPendentes}</div>
     </section>
   `;

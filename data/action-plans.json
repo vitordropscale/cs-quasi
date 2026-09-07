@@ -4,86 +4,86 @@
   "plans": [
     {
       "plan_id": "pl_001",
-      "title": "Zerar a fila sem primeira resposta",
-      "problem": "47 conversas estão abertas há mais de 24 horas sem nenhuma resposta humana. Para o cliente que escreveu, a Quasi simplesmente não respondeu — e é dessa fila que saem os pedidos de reembolso e boa parte dos chargebacks de 'produto não recebido'.",
-      "why_it_matters": "É a única meta do período em vermelho: 47 contra um teto de 20. Cada dia parado aqui vira reembolso ou disputa com o banco depois.",
+      "title": "Clear the queue that never got a first reply",
+      "problem": "47 conversations have been open for more than 24 hours without a single human reply. To the customer who wrote in, Quasi simply did not answer — and this is the queue that later turns into refund requests and a good share of the 'product not received' chargebacks.",
+      "why_it_matters": "It is the only target in the red this period: 47 against a ceiling of 20. Every day stuck here becomes a refund or a dispute with the bank later.",
       "priority": 1,
       "status": "in_progress",
       "owner": "Amara Osei",
       "opened_at": "2026-08-25",
-      "metric": "Abertos há +24h sem resposta ≤ 20 no fechamento da semana, por 3 semanas seguidas.",
+      "metric": "Open 24h+ with no reply at or below 20 at week close, three weeks running.",
       "actions": [
-        { "text": "Varredura diária às 9h e às 16h em tudo que passou de 18h sem resposta, antes de virar caso de 24h.", "type": "internal", "done": true },
-        { "text": "Regra no Commslayer que empurra para o topo da fila qualquer conversa sem resposta humana há 16h.", "type": "tech", "done": true },
-        { "text": "Redistribuir a fila de domingo — hoje 3 pessoas seguram o dia de maior acúmulo.", "type": "internal", "done": false },
-        { "text": "Macro de primeiro contato para rastreio, que responde sem depender de consultar o pedido.", "type": "comms", "done": false }
+        { "text": "Sweep twice a day, 9am and 4pm, through everything past 18 hours without a reply — before it becomes a 24-hour case.", "type": "internal", "done": true },
+        { "text": "Commslayer rule that pushes any conversation without a human reply for 16 hours to the top of the queue.", "type": "tech", "done": true },
+        { "text": "Redistribute the Sunday queue — three people currently cover the day with the biggest pile-up.", "type": "internal", "done": false },
+        { "text": "First-touch macro for tracking questions that answers without needing to pull up the order.", "type": "comms", "done": false }
       ]
     },
     {
       "plan_id": "pl_002",
-      "title": "Cortar o volume de rastreio na origem",
-      "problem": "Um em cada quatro contatos é 'onde está meu pedido'. São conversas que não deveriam existir: o cliente escreve porque o e-mail de envio não chegou, ou porque o código não atualiza por dias e ele conclui que o pedido sumiu.",
-      "why_it_matters": "É o maior bloco de volume da operação. Derrubar isso libera capacidade para tudo que está travado no plano 1, sem contratar ninguém.",
+      "title": "Cut tracking volume at the source",
+      "problem": "One in four contacts is 'where is my order'. These are conversations that should not exist: the customer writes because the shipping email never arrived, or because the tracking number has not moved in days and they conclude the order is lost.",
+      "why_it_matters": "It is the single largest block of volume in the operation. Bringing it down frees capacity for everything stuck in plan 1, without hiring anyone.",
       "priority": 2,
       "status": "in_progress",
       "owner": "Daniel Okafor",
       "opened_at": "2026-08-18",
-      "metric": "Participação de 'Onde está meu pedido' cai de 26% para ≤ 18% do volume total.",
+      "metric": "'Where is my order' drops from 26% to 18% or less of total volume.",
       "actions": [
-        { "text": "E-mail proativo no dia 7 pós-compra quando o rastreio não teve evento novo em 72h.", "type": "comms", "done": true },
-        { "text": "Página de rastreio na própria loja, sem jogar o cliente no site da transportadora.", "type": "tech", "done": false },
-        { "text": "Prazo real por região na página do produto — hoje diz '5 a 9 dias' para todo mundo.", "type": "comms", "done": false },
-        { "text": "Revisar com o fornecedor o intervalo entre 'pedido pago' e 'postado', hoje em 3,4 dias.", "type": "supplier", "done": false }
+        { "text": "Proactive email on day 7 post-purchase when tracking has had no new event in 72 hours.", "type": "comms", "done": true },
+        { "text": "Tracking page on the store itself, instead of sending the customer to the carrier's site.", "type": "tech", "done": false },
+        { "text": "Real delivery estimate by region on the product page — today it says '5 to 9 days' to everyone.", "type": "comms", "done": false },
+        { "text": "Review the gap between 'order paid' and 'shipped' with the supplier, currently 3.4 days.", "type": "supplier", "done": false }
       ]
     },
     {
       "plan_id": "pl_003",
-      "title": "Reação na pele: protocolo próprio",
-      "problem": "Reação na pele é o motivo que a equipe responde mais rápido e o segundo que demora mais para fechar. A primeira resposta sai em pouco mais de uma hora, mas o caso fica aberto porque ninguém sabe quando encerrar: falta follow-up definido e falta clareza sobre quando encaminhar para orientação médica.",
-      "why_it_matters": "É o único motivo com risco de marca e de regulação. Um caso mal conduzido custa muito mais do que qualquer reembolso da lista.",
+      "title": "Skin reactions need their own protocol",
+      "problem": "Skin reaction is the reason the team answers fastest and the second slowest to close. The first reply goes out in a little over an hour, but the case stays open because nobody knows when to end it: there is no defined follow-up and no clarity on when to point someone toward medical advice.",
+      "why_it_matters": "It is the only reason carrying brand and regulatory risk. One badly handled case costs far more than any refund on this list.",
       "priority": 2,
       "status": "in_progress",
       "owner": "Priya Raman",
       "opened_at": "2026-08-11",
-      "metric": "Resolução mediana de 'Reação na pele' ≤ 24h e 100% dos casos com follow-up registrado em 72h.",
+      "metric": "Median resolution for 'Skin reaction' at or below 24h, and 100% of cases with a follow-up logged within 72h.",
       "actions": [
-        { "text": "Roteiro de triagem em três perguntas, aprovado antes de ir para a equipe.", "type": "policy", "done": true },
-        { "text": "Reembolso liberado sem escalar quando há relato de reação, até US$ 90.", "type": "policy", "done": true },
-        { "text": "Follow-up automático em 72h para confirmar se a reação passou.", "type": "tech", "done": false },
-        { "text": "Registrar lote do produto em todo caso, para cruzar com o fornecedor.", "type": "internal", "done": false }
+        { "text": "Three-question triage script, signed off before it reaches the team.", "type": "policy", "done": true },
+        { "text": "Refunds up to $90 released without escalation whenever a reaction is reported.", "type": "policy", "done": true },
+        { "text": "Automatic 72-hour follow-up to confirm the reaction has cleared.", "type": "tech", "done": false },
+        { "text": "Log the product batch on every case, so it can be cross-checked with the supplier.", "type": "internal", "done": false }
       ]
     },
     {
       "plan_id": "pl_004",
-      "title": "Assinatura cobrando depois do cancelamento",
-      "problem": "Clientes cancelam a assinatura e são cobrados no ciclo seguinte. Quando isso acontece, boa parte não escreve para o suporte — abre disputa direto no banco. 'Assinatura não cancelada' é hoje o terceiro motivo de chargeback.",
-      "why_it_matters": "Chargeback por assinatura é o pior tipo: a taxa é cobrada mesmo quando se ganha o caso, e o volume conta para os programas de monitoramento das bandeiras.",
+      "title": "Subscriptions charging after cancellation",
+      "problem": "Customers cancel their subscription and get charged on the following cycle. When that happens, a good share of them never write to support — they open a dispute with their bank directly. 'Subscription not cancelled' is now the third most common chargeback reason.",
+      "why_it_matters": "A subscription chargeback is the worst kind: the fee is charged even when the case is won, and the volume counts toward the card networks' monitoring programmes.",
       "priority": 3,
       "status": "blocked",
       "owner": null,
       "opened_at": "2026-08-04",
-      "metric": "Taxa de chargeback ≤ 0,5% dos pedidos e zero disputa com motivo 'assinatura não cancelada'.",
+      "metric": "Chargeback rate at or below 0.5% of orders, and zero disputes citing 'subscription not cancelled'.",
       "actions": [
-        { "text": "Reproduzir o bug: cancelamento dentro de 24h do faturamento não interrompe o ciclo.", "type": "tech", "done": true },
-        { "text": "E-mail de confirmação de cancelamento com a data em que a cobrança para.", "type": "comms", "done": false },
-        { "text": "Botão de cancelar visível na conta, sem precisar falar com atendimento.", "type": "tech", "done": false },
-        { "text": "Bloqueado: depende da migração do app de assinatura, sem data definida.", "type": "tech", "done": false }
+        { "text": "Reproduce the bug: cancelling within 24 hours of billing does not stop the cycle.", "type": "tech", "done": true },
+        { "text": "Cancellation confirmation email stating the date charges stop.", "type": "comms", "done": false },
+        { "text": "Visible cancel button in the account, with no need to talk to support.", "type": "tech", "done": false },
+        { "text": "Blocked: depends on the subscription app migration, no date set.", "type": "tech", "done": false }
       ]
     },
     {
       "plan_id": "pl_005",
-      "title": "Entrega perdida no último quilômetro",
-      "problem": "'Entrega com problema' é o motivo que mais demora para fechar — o caso fica parado esperando resposta da transportadora, que leva dias. Uma parte vem marcada como entregue sem o cliente ter recebido.",
-      "why_it_matters": "Puxa sozinho a mediana de resolução da operação inteira para cima e é a origem da maioria das reposições enviadas.",
+      "title": "Deliveries lost on the last mile",
+      "problem": "'Delivery problem' is the reason that takes longest to close — the case sits waiting on the carrier, which takes days to respond. A share of them come back marked as delivered when the customer never received anything.",
+      "why_it_matters": "On its own it drags the whole operation's median resolution up, and it is the origin of most replacements shipped.",
       "priority": 3,
       "status": "not_started",
       "owner": "Elena Vasquez",
       "opened_at": "2026-09-01",
-      "metric": "Resolução mediana de 'Entrega com problema' ≤ 40h.",
+      "metric": "Median resolution for 'Delivery problem' at or below 40h.",
       "actions": [
-        { "text": "Prazo fixo com a transportadora para responder investigação de extravio.", "type": "supplier", "done": false },
-        { "text": "Reenviar sem esperar o parecer quando o valor do pedido for menor que o custo de investigar.", "type": "policy", "done": false },
-        { "text": "Comparar índice de 'entregue mas não recebido' por região e cortar as piores rotas.", "type": "internal", "done": false }
+        { "text": "Fixed response deadline with the carrier for lost-package investigations.", "type": "supplier", "done": false },
+        { "text": "Reship without waiting for the verdict when the order is worth less than the cost of investigating.", "type": "policy", "done": false },
+        { "text": "Compare 'delivered but not received' rates by region and cut the worst routes.", "type": "internal", "done": false }
       ]
     }
   ]

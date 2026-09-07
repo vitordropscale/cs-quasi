@@ -55,19 +55,19 @@ export function buildPeriods(meta) {
     {
       id: 'current',
       from: meta.period_start, to: meta.period_end,
-      label: 'Semana fechada',
-      compare: { from: meta.previous_period_start, to: meta.previous_period_end, label: 'semana anterior' },
+      label: 'Week just closed',
+      compare: { from: meta.previous_period_start, to: meta.previous_period_end, label: 'week before' },
     },
     {
       id: 'previous',
       from: meta.previous_period_start, to: meta.previous_period_end,
-      label: 'Semana anterior',
+      label: 'Previous week',
       compare: null,
     },
     {
       id: 'both',
       from: meta.previous_period_start, to: meta.period_end,
-      label: 'As duas semanas',
+      label: 'Both weeks',
       compare: null,
     },
   ];

@@ -150,16 +150,16 @@ $dowWeight = @{ Monday = 1.22; Tuesday = 1.10; Wednesday = 1.03; Thursday = 0.99
 #   slow -> fatia dos tickets que cai na cauda lenta
 
 $reasons = @(
-  [ordered]@{ reason='order_status';        label='Onde está meu pedido';       short='Rastreio';     share=0.26; frt=0.85; res=0.62; slow=0.15; slot=1 },
-  [ordered]@{ reason='delivery_issue';      label='Entrega com problema';       short='Entrega';      share=0.14; frt=1.18; res=1.85; slow=0.22; slot=2 },
-  [ordered]@{ reason='subscription';        label='Assinatura';                 short='Assinatura';   share=0.13; frt=1.02; res=0.78; slow=0.18; slot=3 },
-  [ordered]@{ reason='product_question';    label='Dúvida sobre o produto';     short='Dúvida';       share=0.12; frt=0.96; res=0.55; slow=0.16; slot=4 },
-  [ordered]@{ reason='refund_request';      label='Pedido de reembolso';        short='Reembolso';    share=0.09; frt=1.34; res=1.22; slow=0.24; slot=5 },
-  [ordered]@{ reason='cancel_change_order'; label='Cancelar ou alterar pedido'; short='Cancelamento'; share=0.07; frt=0.78; res=0.48; slow=0.11; slot=6 },
-  [ordered]@{ reason='adverse_reaction';    label='Reação na pele';             short='Reação';       share=0.06; frt=0.42; res=1.65; slow=0.04; slot=7 },
-  [ordered]@{ reason='damaged_item';        label='Produto danificado';         short='Danificado';   share=0.05; frt=1.06; res=1.42; slow=0.19; slot=8 },
-  [ordered]@{ reason='wrong_item';          label='Item errado';                short='Item errado';  share=0.04; frt=1.10; res=1.35; slow=0.20; slot=9 },
-  [ordered]@{ reason='promo_discount';      label='Cupom e promoção';           short='Cupom';        share=0.04; frt=0.88; res=0.44; slow=0.13; slot=10 }
+  [ordered]@{ reason='order_status';        label='Where is my order';       short='Tracking';     share=0.26; frt=0.85; res=0.62; slow=0.15; slot=1 },
+  [ordered]@{ reason='delivery_issue';      label='Delivery problem';        short='Delivery';     share=0.14; frt=1.18; res=1.85; slow=0.22; slot=2 },
+  [ordered]@{ reason='subscription';        label='Subscription';            short='Subscription'; share=0.13; frt=1.02; res=0.78; slow=0.18; slot=3 },
+  [ordered]@{ reason='product_question';    label='Product question';        short='Question';     share=0.12; frt=0.96; res=0.55; slow=0.16; slot=4 },
+  [ordered]@{ reason='refund_request';      label='Refund request';          short='Refund';       share=0.09; frt=1.34; res=1.22; slow=0.24; slot=5 },
+  [ordered]@{ reason='cancel_change_order'; label='Cancel or change order';  short='Cancellation'; share=0.07; frt=0.78; res=0.48; slow=0.11; slot=6 },
+  [ordered]@{ reason='adverse_reaction';    label='Skin reaction';           short='Reaction';     share=0.06; frt=0.42; res=1.65; slow=0.04; slot=7 },
+  [ordered]@{ reason='damaged_item';        label='Damaged product';         short='Damaged';      share=0.05; frt=1.06; res=1.42; slow=0.19; slot=8 },
+  [ordered]@{ reason='wrong_item';          label='Wrong item';              short='Wrong item';   share=0.04; frt=1.10; res=1.35; slow=0.20; slot=9 },
+  [ordered]@{ reason='promo_discount';      label='Promo and discount';      short='Promo';        share=0.04; frt=0.88; res=0.44; slow=0.13; slot=10 }
 )
 
 $FRT_BASE     = 3.10   # mediana do corpo rapido de primeira resposta, em horas
@@ -451,17 +451,20 @@ $critReasons = @(
   @{ v = 'reopened';          w = 16 }, @{ v = 'refund_requested';    w = 14 },
   @{ v = 'escalated';         w = 14 }
 )
+# O número de opções por motivo precisa continuar o mesmo: Pick() sorteia um
+# índice dentro do array, então mudar a quantidade deslocaria todos os sorteios
+# seguintes e os números do relatório inteiro mudariam.
 $subjects = @{
-  order_status        = @('Pedido parado no rastreio há 9 dias', 'Código de rastreio não atualiza', 'Onde está meu pedido?', 'Rastreio parou em trânsito')
-  delivery_issue      = @('Entrega marcada como concluída mas não recebi', 'Pacote devolvido ao remetente', 'Endereço errado na etiqueta')
-  subscription        = @('Cobrança da assinatura após cancelar', 'Quero pular o próximo ciclo', 'Assinatura duplicada')
-  product_question    = @('Posso usar com retinol?', 'Quantas vezes por semana?', 'Serve para pele sensível?')
-  refund_request      = @('Reembolso ainda não caiu', 'Quero reembolso total do pedido', 'Reembolso parcial acordado não chegou')
-  cancel_change_order = @('Cancelar antes do envio', 'Trocar o endereço de entrega', 'Alterar variação do pedido')
-  adverse_reaction    = @('Ardência e vermelhidão após o uso', 'Coceira na área dos olhos', 'Reação na pele no segundo dia')
-  damaged_item        = @('Caixa amassada e sachê furado', 'Produto chegou vazando', 'Lacre violado na entrega')
-  wrong_item          = @('Recebi variação errada', 'Faltou um item do kit', 'Vieram 2 de 3 unidades')
-  promo_discount      = @('Cupom não aplicou no checkout', 'Cobrado sem o desconto do combo', 'Brinde não veio no pedido')
+  order_status        = @('Order stuck in tracking for 9 days', 'Tracking number is not updating', 'Where is my order?', 'Tracking stopped in transit')
+  delivery_issue      = @('Marked as delivered but I never got it', 'Package returned to sender', 'Wrong address on the label')
+  subscription        = @('Charged after cancelling my subscription', 'I want to skip the next cycle', 'Duplicate subscription')
+  product_question    = @('Can I use it with retinol?', 'How many times per week?', 'Is it safe for sensitive skin?')
+  refund_request      = @('Refund still has not landed', 'I want a full refund on this order', 'Agreed partial refund never arrived')
+  cancel_change_order = @('Cancel before it ships', 'Change my delivery address', 'Change the variant on my order')
+  adverse_reaction    = @('Burning and redness after use', 'Itching around the eye area', 'Skin reaction on the second day')
+  damaged_item        = @('Box crushed and sachet punctured', 'Product arrived leaking', 'Seal was broken on arrival')
+  wrong_item          = @('Received the wrong variant', 'One item missing from the kit', 'Got 2 of 3 units')
+  promo_discount      = @('Coupon did not apply at checkout', 'Charged without the bundle discount', 'Free gift missing from my order')
 }
 $customers = @('Hannah Weiss','Chloe Bennett','Aisha Rahman','Megan Torres','Julia Sandberg','Nora Lindqvist',
                'Rachel Kim','Fatima Zahra','Emily Carter','Sarah Nakamura','Isabel Moreau','Grace O''Donnell',
@@ -547,14 +550,14 @@ $meta = [System.Text.StringBuilder]::new()
 [void]$meta.AppendLine('  "previous_period_end": ' + (JStr (D $PrevEnd)) + ',')
 [void]$meta.AppendLine('  "targets": {')
 $targets = [ordered]@{
-  frt_median_hours        = [ordered]@{ label='Primeira resposta (mediana)';   unit='hours';   goal=4;    warning=7;   direction='lower_is_better' }
-  pct_answered_under_24h  = [ordered]@{ label='Respondidos em até 24h';        unit='percent'; goal=92;   warning=85;  direction='higher_is_better' }
-  resolution_median_hours = [ordered]@{ label='Resolução (mediana)';           unit='hours';   goal=20;   warning=32;  direction='lower_is_better' }
-  backlog                 = [ordered]@{ label='Fila no fim do período';        unit='tickets'; goal=180;  warning=260; direction='lower_is_better' }
-  over_24h_unanswered     = [ordered]@{ label='Abertos há +24h sem resposta';  unit='tickets'; goal=20;   warning=40;  direction='lower_is_better' }
-  reopen_rate             = [ordered]@{ label='Taxa de reabertura';            unit='percent'; goal=4.5;  warning=6.5; direction='lower_is_better' }
-  refund_rate             = [ordered]@{ label='Taxa de reembolso';             unit='percent'; goal=2.2;  warning=3;   direction='lower_is_better' }
-  chargeback_rate         = [ordered]@{ label='Taxa de chargeback';            unit='percent'; goal=0.5;  warning=0.9; direction='lower_is_better' }
+  frt_median_hours        = [ordered]@{ label='First response (median)';  unit='hours';   goal=4;    warning=7;   direction='lower_is_better' }
+  pct_answered_under_24h  = [ordered]@{ label='Answered within 24h';      unit='percent'; goal=92;   warning=85;  direction='higher_is_better' }
+  resolution_median_hours = [ordered]@{ label='Resolution (median)';      unit='hours';   goal=20;   warning=32;  direction='lower_is_better' }
+  backlog                 = [ordered]@{ label='Queue at period end';      unit='tickets'; goal=180;  warning=260; direction='lower_is_better' }
+  over_24h_unanswered     = [ordered]@{ label='Open 24h+ with no reply';  unit='tickets'; goal=20;   warning=40;  direction='lower_is_better' }
+  reopen_rate             = [ordered]@{ label='Reopen rate';              unit='percent'; goal=4.5;  warning=6.5; direction='lower_is_better' }
+  refund_rate             = [ordered]@{ label='Refund rate';              unit='percent'; goal=2.2;  warning=3;   direction='lower_is_better' }
+  chargeback_rate         = [ordered]@{ label='Chargeback rate';          unit='percent'; goal=0.5;  warning=0.9; direction='lower_is_better' }
 }
 $tk = @($targets.Keys)
 for ($i = 0; $i -lt $tk.Count; $i++) {

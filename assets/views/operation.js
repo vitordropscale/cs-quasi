@@ -11,11 +11,11 @@ import {
 } from '../charts.js';
 
 const CRIT_LABEL = {
-  no_reply_over_24h: 'Sem resposta há +24h',
-  waiting_over_3_days: 'Esperando há +3 dias',
-  reopened: 'Reaberto',
-  refund_requested: 'Pediu reembolso',
-  escalated: 'Escalado',
+  no_reply_over_24h: 'No reply for 24h+',
+  waiting_over_3_days: 'Waiting 3+ days',
+  reopened: 'Reopened',
+  refund_requested: 'Asked for a refund',
+  escalated: 'Escalated',
 };
 
 export function renderOperation(data, state) {
@@ -35,38 +35,38 @@ export function renderOperation(data, state) {
 
   const kpis = [
     tile({
-      hero: true, label: 'Na fila agora', value: fmtInt(s.backlog),
+      hero: true, label: 'In the queue now', value: fmtInt(s.backlog),
       status: M.goalStatus(s.backlog, t.backlog),
-      foot: `${fmtInt(s.unassigned)} sem ninguém atribuído`,
+      foot: `${fmtInt(s.unassigned)} with nobody assigned`,
     }),
     tile({
-      label: 'Sem resposta há +24h', value: fmtInt(s.over_24h_unanswered),
+      label: 'No reply for 24h+', value: fmtInt(s.over_24h_unanswered),
       status: M.goalStatus(s.over_24h_unanswered, t.over_24h_unanswered),
-      foot: 'aberto e ainda sem resposta humana',
+      foot: 'open and still without a human reply',
     }),
     tile({
-      label: 'Esperando há +3 dias', value: fmtInt(s.aging.over_72h),
-      foot: `${fmtPct(M.percent(s.aging.over_72h, s.backlog))} da fila`,
+      label: 'Waiting 3+ days', value: fmtInt(s.aging.over_72h),
+      foot: `${fmtPct(M.percent(s.aging.over_72h, s.backlog))} of the queue`,
     }),
     tile({
-      label: 'Respondidos no dia', value: fmtInt(s.answered_today),
-      foot: `${fmtInt(agents.length)} atendentes em turno`,
+      label: 'Answered that day', value: fmtInt(s.answered_today),
+      foot: `${fmtInt(agents.length)} agents on shift`,
     }),
   ].join('');
 
   /* -------------------------------------------------------- fila/idade -- */
 
   const aging = [
-    { label: 'Menos de 24h', value: s.aging.under_24h, color: stepColor(0) },
-    { label: 'De 24h a 72h', value: s.aging.h24_to_72h, color: stepColor(1) },
-    { label: 'Mais de 72h', value: s.aging.over_72h, color: stepColor(2) },
+    { label: 'Under 24h', value: s.aging.under_24h, color: stepColor(0) },
+    { label: '24h to 72h', value: s.aging.h24_to_72h, color: stepColor(1) },
+    { label: 'Over 72h', value: s.aging.over_72h, color: stepColor(2) },
   ];
 
   const idade = `
     ${stackedRow(aging, { height: 30 })}
     ${legend(aging.map((a) => ({ label: `${a.label} — ${fmtInt(a.value)}`, color: a.color })))}
-    <p class="note">As três faixas particionam a fila: elas somam exatamente ${fmtInt(s.backlog)}.
-    Idade é diferente de "sem resposta" — um ticket pode ter 30h de vida e já ter sido respondido.</p>`;
+    <p class="note">The three bands partition the queue: they add up to exactly ${fmtInt(s.backlog)}.
+    Age is not the same as "no reply" — a ticket can be 30 hours old and already answered.</p>`;
 
   /* ------------------------------------------------------ fila/motivo -- */
 
@@ -74,7 +74,7 @@ export function renderOperation(data, state) {
   const filaMotivo = barList(
     porMotivo.map((r) => ({
       label: labelOf(r.reason), value: r.backlog,
-      sub: `${fmtInt(r.over_24h_unanswered)} sem resposta`,
+      sub: `${fmtInt(r.over_24h_unanswered)} with no reply`,
       color: r.reason === filtro ? 'var(--rose-ink)' : 'var(--series-1)',
     })),
     { format: fmtInt });
@@ -87,11 +87,11 @@ export function renderOperation(data, state) {
     .sort((a, b) => b.age - a.age);
 
   const tabelaCritica = criticos.length === 0
-    ? `<p class="empty">Nada na fila crítica para esta seleção.</p>`
+    ? `<p class="empty">Nothing in the critical queue for this selection.</p>`
     : `<div class="tablewrap"><table>
       <thead><tr>
-        <th>Conversa</th><th>Motivo</th><th class="num">Idade</th>
-        <th>1ª resposta</th><th>Responsável</th><th>Por que está aqui</th>
+        <th>Conversation</th><th>Reason</th><th class="num">Age</th>
+        <th>First reply</th><th>Assigned to</th><th>Why it is here</th>
       </tr></thead>
       <tbody>${criticos.map((c) => `
         <tr>
@@ -100,10 +100,10 @@ export function renderOperation(data, state) {
           <td class="num">${fmtHours(c.age)}</td>
           <td style="text-align:left">${c.first_human_reply_at
             ? esc(fmtStamp(c.first_human_reply_at))
-            : '<span class="chip chip--crit">nunca respondida</span>'}</td>
+            : '<span class="chip chip--crit">never answered</span>'}</td>
           <td style="text-align:left">${c.assignee_id
             ? esc(nameOf(c.assignee_id))
-            : '<span class="chip chip--warn">sem responsável</span>'}</td>
+            : '<span class="chip chip--warn">unassigned</span>'}</td>
           <td style="text-align:left">${esc(CRIT_LABEL[c.escalation_reason] ?? c.escalation_reason)}</td>
         </tr>`).join('')}
       </tbody></table></div>`;
@@ -115,9 +115,9 @@ export function renderOperation(data, state) {
 
   const tabelaAgentes = `<div class="tablewrap"><table>
     <thead><tr>
-      <th>Atendente</th><th class="num">Respondidas</th><th class="num">Fechadas</th>
-      <th class="num">1ª resposta</th><th class="num">Passou de 24h</th>
-      <th class="num">Reabertas</th><th class="num">Reembolsos</th>
+      <th>Agent</th><th class="num">Answered</th><th class="num">Closed</th>
+      <th class="num">1st reply</th><th class="num">Past 24h</th>
+      <th class="num">Reopened</th><th class="num">Refunds</th>
     </tr></thead>
     <tbody>${agents.map((a) => `
       <tr>
@@ -131,7 +131,7 @@ export function renderOperation(data, state) {
       </tr>`).join('')}
     </tbody>
     <tfoot><tr>
-      <td>Total / ponderado</td>
+      <td>Total / weighted</td>
       <td class="num">${fmtInt(totalAnswered)}</td>
       <td class="num">${fmtInt(M.sum(agents.map((a) => a.closed)))}</td>
       <td class="num">${fmtHours(M.median(poolFrt))}</td>
@@ -140,10 +140,9 @@ export function renderOperation(data, state) {
       <td class="num">${fmtInt(M.sum(agents.map((a) => refByAgent.get(a.agent_id) ?? 0)))}</td>
     </tr></tfoot>
   </table></div>
-  <p class="note">A mediana do rodapé sai do conjunto reunido das ${fmtInt(poolFrt.length)} conversas
-  respondidas no dia, não da média das medianas de cada pessoa. Reembolsos vêm de
-  <code>refunds.json</code> contados por atendente — assim esta tabela e os cartões de
-  reembolso não têm como discordar.</p>`;
+  <p class="note">The median in the footer comes from all ${fmtInt(poolFrt.length)} conversations
+  answered that day pooled together, not from averaging each person's median. Refunds are counted
+  per agent from <code>refunds.json</code> — so this table and the refund tiles have no way to disagree.</p>`;
 
   /* --------------------------------------------------------- mais velho -- */
 
@@ -152,21 +151,22 @@ export function renderOperation(data, state) {
     <div class="plan__metric" style="display:flex;flex-wrap:wrap;gap:6px 20px;align-items:baseline">
       <b style="font-weight:600">${esc(o.subject)}</b>
       <span>${esc(labelOf(o.reason))}</span>
-      <span>aberta há <b>${fmtHours(M.ageInHours(o.created_at, snap))}</b></span>
-      <span>${o.assignee_id ? esc(nameOf(o.assignee_id)) : 'sem responsável'}</span>
+      <span>open for <b>${fmtHours(M.ageInHours(o.created_at, snap))}</b></span>
+      <span>${o.assignee_id ? esc(nameOf(o.assignee_id)) : 'unassigned'}</span>
       <span style="color:var(--muted)">${esc(o.ticket_id)}</span>
     </div>`;
 
   /* ------------------------------------------------------------ monta --- */
 
   const escopo = filtro
-    ? `<p class="note note--scoped">Fila crítica e fila por motivo estão filtradas por <b>${esc(labelOf(filtro))}</b>. Os cartões do topo e a tabela de atendentes descrevem a operação inteira.</p>`
+    ? `<p class="note note--scoped">The critical queue and the queue-by-reason chart are filtered to
+       <b>${esc(labelOf(filtro))}</b>. The tiles at the top and the agent table describe the whole operation.</p>`
     : '';
 
   return `
     <p class="note note--scoped" style="background:var(--neutral-bg);color:var(--ink-2)">
-      Retrato da fila em <b>${esc(fmtStamp(snap))}</b>. Nada nesta tela é soma de dias —
-      é o que existia naquele instante, então o seletor de período não a altera.
+      A picture of the queue at <b>${esc(fmtStamp(snap))}</b>. Nothing on this screen is a sum over
+      days — it is what existed at that instant, which is why the period selector does not change it.
     </p>
     ${escopo}
     <div class="grid grid--kpi">${kpis}</div>
@@ -174,15 +174,15 @@ export function renderOperation(data, state) {
     <div class="grid grid--2">
       <section class="card">
         <div class="card__head"><div>
-          <h2 class="card__title">Há quanto tempo a fila espera</h2>
+          <h2 class="card__title">How long the queue has been waiting</h2>
         </div></div>
         <div class="card__body">${idade}</div>
       </section>
 
       <section class="card">
         <div class="card__head"><div>
-          <h2 class="card__title">Fila por motivo</h2>
-          <p class="card__note">Onde a fila está parada agora.</p>
+          <h2 class="card__title">Queue by reason</h2>
+          <p class="card__note">Where the queue is stuck right now.</p>
         </div></div>
         <div class="card__body">${filaMotivo}</div>
       </section>
@@ -190,24 +190,24 @@ export function renderOperation(data, state) {
 
     <section class="card">
       <div class="card__head"><div>
-        <h2 class="card__title">A conversa mais antiga em aberto</h2>
+        <h2 class="card__title">The oldest conversation still open</h2>
       </div></div>
       <div class="card__body">${maisVelho}</div>
     </section>
 
     <section class="card">
       <div class="card__head"><div>
-        <h2 class="card__title">Fila crítica</h2>
-        <p class="card__note">O que precisa de alguém hoje, mais velha primeiro.</p>
+        <h2 class="card__title">Critical queue</h2>
+        <p class="card__note">What needs a person today, oldest first.</p>
       </div>
-      <span class="card__aside">${fmtInt(criticos.length)} conversas</span></div>
+      <span class="card__aside">${fmtInt(criticos.length)} conversations</span></div>
       <div class="card__body">${tabelaCritica}</div>
     </section>
 
     <section class="card">
       <div class="card__head"><div>
-        <h2 class="card__title">Por atendente</h2>
-        <p class="card__note">Números do dia do retrato, ${esc(fmtStamp(snap).split(',')[0])}.</p>
+        <h2 class="card__title">By agent</h2>
+        <p class="card__note">Figures for the snapshot day, ${esc(fmtStamp(snap).split(',')[0])}.</p>
       </div></div>
       <div class="card__body">${tabelaAgentes}</div>
     </section>

@@ -20,16 +20,18 @@ export const stepColor = (i) => STEPS[i % STEPS.length];
 
 /* --------------------------------------------------------- formatadores -- */
 
-const nf0 = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 });
-const nf1 = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-const nf2 = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+// A interface fala inglês e reporta em dólar, então a formatação segue o padrão
+// americano: 1,045 e 88.9%, não 1.045 e 88,9%.
+const nf0 = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
+const nf1 = new Intl.NumberFormat('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const nf2 = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export const fmtInt = (n) => (n == null ? '—' : nf0.format(n));
 export const fmtPct = (n, d = 1) => (n == null ? '—' : (d === 2 ? nf2 : nf1).format(n) + '%');
 
 export function fmtMoney(n, { cents = false } = {}) {
   if (n == null) return '—';
-  return 'US$ ' + (cents ? nf2 : nf0).format(n);
+  return '$' + (cents ? nf2 : nf0).format(n);
 }
 
 /** Horas em algo que se lê. Abaixo de 1h vira minuto; acima de 48h vira dia. */
@@ -40,24 +42,28 @@ export function fmtHours(h) {
   return `${nf1.format(h / 24)} d`;
 }
 
-const MES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-const DIA = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+const MONTH = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const WEEKDAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+// Construído a partir das partes, não de new Date(iso): uma data pelada é lida
+// como UTC e voltaria um dia para quem está a oeste de Greenwich.
 const parseDay = (iso) => {
   const [y, m, d] = String(iso).slice(0, 10).split('-').map(Number);
   return new Date(y, m - 1, d);
 };
 
-export const fmtDay = (iso) => { const d = parseDay(iso); return `${d.getDate()} ${MES[d.getMonth()]}`; };
-export const fmtDayShort = (iso) => { const d = parseDay(iso); return `${DIA[d.getDay()]} ${d.getDate()}`; };
-export const fmtWeekday = (iso) => DIA[parseDay(iso).getDay()];
+export const fmtDay = (iso) => { const d = parseDay(iso); return `${MONTH[d.getMonth()]} ${d.getDate()}`; };
+export const fmtDayShort = (iso) => { const d = parseDay(iso); return `${WEEKDAY[d.getDay()]} ${d.getDate()}`; };
+export const fmtWeekday = (iso) => WEEKDAY[parseDay(iso).getDay()];
 
-export function fmtRange(from, to) { return `${fmtDay(from)} a ${fmtDay(to)}`; }
+export function fmtRange(from, to) { return `${fmtDay(from)} – ${fmtDay(to)}`; }
 
 export function fmtStamp(iso) {
   const d = new Date(iso);
-  const pad = (n) => String(n).padStart(2, '0');
-  return `${d.getDate()} ${MES[d.getMonth()]}, ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const h24 = d.getHours();
+  const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+  const min = String(d.getMinutes()).padStart(2, '0');
+  return `${MONTH[d.getMonth()]} ${d.getDate()}, ${h12}:${min} ${h24 < 12 ? 'AM' : 'PM'}`;
 }
 
 export const esc = (s) => String(s ?? '')
@@ -73,7 +79,7 @@ export function tile({ label, value, unit, delta, deltaLabel, status, statusLabe
     const cls = delta.tone === 'good' ? 'delta--good' : 'delta--bad';
     parts.push(`<span class="delta ${cls}">${arrow} ${esc(deltaLabel)}</span>`);
   } else if (delta && delta.delta != null) {
-    parts.push(`<span class="delta delta--flat">sem variação</span>`);
+    parts.push(`<span class="delta delta--flat">no change</span>`);
   }
   if (status && status !== 'none') parts.push(statusChip(status, statusLabel));
   if (foot) parts.push(`<span>${esc(foot)}</span>`);
@@ -85,7 +91,7 @@ export function tile({ label, value, unit, delta, deltaLabel, status, statusLabe
   </article>`;
 }
 
-const CHIP_WORD = { good: 'na meta', warn: 'atenção', crit: 'fora da meta', none: 'sem meta' };
+const CHIP_WORD = { good: 'on target', warn: 'watch', crit: 'off target', none: 'no target' };
 
 /** A cor nunca carrega o estado sozinha — o chip sempre vem com a palavra. */
 export function statusChip(status, label) {
@@ -216,7 +222,7 @@ export function lineChart({ days, series, height = 250, formatValue = fmtInt, yL
       fill="${s.color}" opacity="0"/>`).join('')).join('');
 
   return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img"
-      aria-label="${esc(yLabel ?? 'Série temporal')}" data-chart="line">
+      aria-label="${esc(yLabel ?? 'Time series')}" data-chart="line">
     ${grid}
     <line class="baseline" x1="${PAD.l}" y1="${y(0).toFixed(1)}" x2="${W - padR}" y2="${y(0).toFixed(1)}"/>
     ${xlabels}

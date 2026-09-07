@@ -15,30 +15,30 @@ import { renderSources } from './views/sources.js';
 
 const VIEWS = {
   overview: {
-    title: 'Visão da semana',
+    title: 'This week',
     render: renderOverview,
-    sub: (s) => `Atendimento da Quasi de ${fmtRange(s.window.from, s.window.to)}` +
-      (s.period.compare ? `, comparado com a ${s.period.compare.label}.` : '.'),
+    sub: (s) => `Quasi support, ${fmtRange(s.window.from, s.window.to)}` +
+      (s.period.compare ? `, against the ${s.period.compare.label}.` : '.'),
   },
   operation: {
-    title: 'Operação',
+    title: 'Operations',
     render: renderOperation,
-    sub: () => 'Como a fila está agora e quem está segurando o quê. Tela interna.',
+    sub: () => 'Where the queue stands right now and who is holding what. Internal view.',
   },
   chargebacks: {
     title: 'Chargebacks',
     render: renderChargebacks,
-    sub: (s) => `Disputas abertas em ${fmtRange(s.window.from, s.window.to)} e onde está cada caso hoje.`,
+    sub: (s) => `Disputes opened ${fmtRange(s.window.from, s.window.to)}, and where every case stands today.`,
   },
   plans: {
-    title: 'Planos de ação',
+    title: 'Action plans',
     render: renderPlans,
-    sub: () => 'O que foi combinado para melhorar, e por qual número cada plano vai ser julgado.',
+    sub: () => 'What we committed to fixing, and the number each plan will be judged by.',
   },
   sources: {
-    title: 'De onde vêm os números',
+    title: 'Where the numbers come from',
     render: renderSources,
-    sub: () => 'O que cada métrica mede, como é calculada e o que muda quando o dado virar real.',
+    sub: () => 'What each metric measures, how it is computed, and what changes when the data goes live.',
   },
 };
 
@@ -105,7 +105,7 @@ function fillPeriodFilter() {
 }
 
 function fillReasonFilter() {
-  $('#filter-reason').innerHTML = `<option value="">Todos os motivos</option>` +
+  $('#filter-reason').innerHTML = `<option value="">All reasons</option>` +
     data.reasons.map((r) => `<option value="${esc(r.reason)}">${esc(r.label)}</option>`).join('');
 }
 
@@ -114,8 +114,8 @@ function fillRailMeta() {
   $('#rail-meta').innerHTML = `
     <b>${esc(m.brand.name)}</b>
     Commslayer · Shopify<br>
-    Gerado em ${esc(fmtStamp(m.generated_at))}<br>
-    Fuso ${esc(m.reporting_timezone)}`;
+    Generated ${esc(fmtStamp(m.generated_at))}<br>
+    Reporting in ${esc(m.reporting_timezone)}`;
 }
 
 function showWarnings(warnings) {
@@ -123,7 +123,7 @@ function showWarnings(warnings) {
   const box = $('#alerts');
   box.hidden = false;
   box.innerHTML = warnings.map((w) =>
-    `<p class="alert"><b>Dado inconsistente:</b> ${esc(w)}</p>`).join('');
+    `<p class="alert"><b>Inconsistent data:</b> ${esc(w)}</p>`).join('');
 }
 
 /* ------------------------------------------------------------ desenhar -- */
@@ -165,7 +165,7 @@ function render() {
     wireCharts(host);
   } catch (err) {
     console.error(err);
-    host.innerHTML = `<p class="empty">Não consegui montar esta tela: ${esc(err.message)}</p>`;
+    host.innerHTML = `<p class="empty">Could not build this view: ${esc(err.message)}</p>`;
   }
 }
 
@@ -174,6 +174,6 @@ function fail(err) {
   const el = $('#loading');
   if (el) {
     el.className = 'alert';
-    el.innerHTML = `<span><b>Não consegui carregar os dados.</b> ${esc(err.message)}</span>`;
+    el.innerHTML = `<span><b>Could not load the data.</b> ${esc(err.message)}</span>`;
   }
 }

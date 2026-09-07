@@ -6,141 +6,140 @@ export function renderSources(data) {
   const { meta, rows, refunds, replacements, chargebacks, queue, reasons } = data;
 
   const contagem = [
-    ['meta.json', 'Limites do período e as metas', '1 objeto'],
-    ['reasons.json', 'Registro dos motivos de contato', `${reasons.length} motivos`],
-    ['tickets-daily.json', 'Um registro por motivo por dia', `${fmtInt(rows.length)} linhas`],
-    ['queue.json', 'Retrato da fila num instante', `${fmtInt(queue.critical?.length ?? 0)} críticas · ${fmtInt(queue.agents?.length ?? 0)} atendentes`],
-    ['refunds.json', 'Uma linha por reembolso', `${fmtInt(refunds.length)} reembolsos`],
-    ['replacements.json', 'Uma linha por reposição enviada', `${fmtInt(replacements.length)} reposições`],
-    ['revenue.json', 'Receita e pedidos por dia, da Shopify', `${fmtInt(data.revenue.length)} dias`],
-    ['chargebacks.json', 'Uma linha por disputa', `${fmtInt(chargebacks.length)} disputas`],
-    ['action-plans.json', 'Escrito à mão, fora do gerador', `${fmtInt(data.plans.length)} planos`],
+    ['meta.json', 'Period bounds and the targets', '1 object'],
+    ['reasons.json', 'Registry of contact reasons', `${reasons.length} reasons`],
+    ['tickets-daily.json', 'One row per reason per day', `${fmtInt(rows.length)} rows`],
+    ['queue.json', 'A picture of the queue at one instant', `${fmtInt(queue.critical?.length ?? 0)} critical · ${fmtInt(queue.agents?.length ?? 0)} agents`],
+    ['refunds.json', 'One row per refund', `${fmtInt(refunds.length)} refunds`],
+    ['replacements.json', 'One row per replacement shipped', `${fmtInt(replacements.length)} replacements`],
+    ['revenue.json', 'Revenue and orders per day, from Shopify', `${fmtInt(data.revenue.length)} days`],
+    ['chargebacks.json', 'One row per dispute', `${fmtInt(chargebacks.length)} disputes`],
+    ['action-plans.json', 'Hand-written, outside the generator', `${fmtInt(data.plans.length)} plans`],
   ];
 
   const definicoes = [
-    ['Primeira resposta',
-     'Horas entre a conversa nascer e a primeira resposta <b>humana</b>. Resposta automática, macro disparada por automação e mensagem de bot não contam. É a definição que mais depende da API: se o Commslayer não distinguir bot de gente no payload da mensagem, esta métrica desaba para perto de zero e deixa de significar qualquer coisa.'],
-    ['Respondidas',
-     'Conversas que receberam ao menos uma resposta humana <b>naquele dia</b> — contadas pela resposta, não pela criação. Uma conversa que nasce domingo e é respondida segunda conta na segunda, e o valor dela passa de 24h.'],
-    ['Resolução',
-     'Horas entre nascer e o fechamento final. Se foi reaberta e fechada de novo, vale o <b>último</b> fechamento.'],
-    ['Taxa de reabertura',
-     'Reabertas ÷ fechadas na mesma janela.'],
-    ['Fila',
-     'Conversas abertas ou pendentes no instante do retrato. É uma contagem do que existe, não um total do que aconteceu — por isso não soma entre períodos.'],
-    ['Sem resposta há +24h',
-     'Abertas há mais de 24h e ainda sem nenhuma resposta humana. Diferente das faixas de idade: uma conversa pode ter 30h de vida e já ter sido respondida.'],
-    ['Taxa de reembolso',
-     '<b>Dinheiro sobre dinheiro</b>: valor devolvido ÷ receita da mesma janela. Nunca reembolsos ÷ conversas. É para isso que <code>revenue.json</code> existe.'],
-    ['Taxa de chargeback',
-     '<b>Quantidade ÷ pedidos</b>, não valor ÷ receita. É a razão que as bandeiras monitoram e sobre a qual definem limite. A razão em dinheiro é reportada ao lado porque é o que custa, mas não é o número que dispara nada.'],
-    ['Aproveitamento em disputas',
-     'Ganhas ÷ decididas, onde decididas = ganhas + perdidas + aceitas. Pendentes ficam de fora.'],
+    ['First response',
+     'Hours between a conversation being created and the first <b>human</b> reply. Auto-responses, macros fired by automation and bot messages do not count. It is the definition that depends most on the API: if Commslayer does not distinguish a bot from a person in the message payload, this metric collapses toward zero and stops meaning anything.'],
+    ['Answered',
+     'Conversations that received at least one human reply <b>that day</b> — counted by the reply, not by creation. A conversation born on Sunday and answered on Monday counts on Monday, and its value exceeds 24h.'],
+    ['Resolution',
+     'Hours between creation and the final close. If it was reopened and closed again, the <b>last</b> close is the one measured.'],
+    ['Reopen rate',
+     'Reopened ÷ closed in the same window.'],
+    ['Queue',
+     'Conversations open or pending at the instant of the snapshot. It is a count of what exists, not a total of what happened — which is why it cannot be added across periods.'],
+    ['No reply for 24h+',
+     'Open for more than 24 hours and still without any human reply. Different from the age bands: a conversation can be 30 hours old and already answered.'],
+    ['Refund rate',
+     '<b>Money over money</b>: amount refunded ÷ revenue for the same window. Never refunds ÷ conversations. That is what <code>revenue.json</code> exists for.'],
+    ['Chargeback rate',
+     '<b>Count ÷ orders</b>, not value ÷ revenue. It is the ratio card networks monitor and set thresholds on. The money ratio is reported alongside because it is what the problem costs, but it is not the number that triggers anything.'],
+    ['Dispute win rate',
+     'Won ÷ decided, where decided = won + lost + accepted. Pending cases are left out.'],
   ];
 
   const convencoes = [
-    ['Mediana nunca é guardada',
-     '<code>tickets-daily.json</code> carrega um valor por ticket, não uma mediana pronta, porque mediana de medianas não é mediana. Se o arquivo guardasse <code>frt_median</code> por motivo e por dia, não haveria jeito correto de produzir a mediana da semana, nem a mediana entre motivos. Como os valores crus estão lá, toda mediana da tela — do dia, do motivo, da semana, de qualquer recorte do filtro — sai do conjunto real de conversas.'],
-    ['Contagem e dinheiro somam; mediana e porcentagem não',
-     'A linha de total das tabelas é recalculada sobre o conjunto reunido, o que a pondera por volume. É por isso que ela é rotulada <i>Total / ponderado</i> e quase nunca é a média das células acima dela.'],
-    ['Porcentagem não é armazenada',
-     'Onde os dois números crus existem, o JSON carrega os dois e a divisão acontece em <code>metrics.js</code>. Os únicos valores em forma de porcentagem nos dados são <b>alvos</b> em <code>meta.json</code>, que são limiares, não medições.'],
-    ['Ausente é <code>null</code>',
-     'Nunca <code>""</code>, nunca <code>0</code>, nunca <code>"N/A"</code>. <code>0</code> quer dizer zero medido.'],
-    ['Duração é sempre hora, como número',
-     '<code>3.75</code> significa 3h45. Nunca segundo, nunca minuto, nunca <code>"3h45m"</code>. Formatar é trabalho da interface.'],
+    ['A median is never stored',
+     '<code>tickets-daily.json</code> carries one value per ticket, not a pre-computed median, because a median of medians is not a median. If the file stored <code>frt_median</code> per reason per day, there would be no correct way to produce the week\'s median, or the median across reasons. Because the raw values are there, every median on the page — for a day, a reason, the week, any slice of the filter — is computed from the actual pool of conversations.'],
+    ['Counts and money add up; medians and percentages do not',
+     'The total row in each table is recomputed over the pooled set, which weights it by volume. That is why it is labelled <i>Total / weighted</i> and is almost never the average of the cells above it.'],
+    ['Percentages are not stored',
+     'Where both raw numbers exist, the JSON carries both and the division happens in <code>metrics.js</code>. The only percentage-shaped values in the data are <b>targets</b> in <code>meta.json</code>, which are thresholds, not measurements.'],
+    ['Absent is <code>null</code>',
+     'Never <code>""</code>, never <code>0</code>, never <code>"N/A"</code>. <code>0</code> means a measured zero.'],
+    ['Duration is always hours, as a number',
+     '<code>3.75</code> means 3h45. Never seconds, never minutes, never <code>"3h45m"</code>. Formatting is the interface\'s job.'],
   ];
 
   const fase2 = [
-    ['Um job agendado escreve o JSON',
-     'Uma rotina chama a API do Commslayer e a da Shopify, calcula as mesmas contagens cruas e os mesmos arrays por ticket que o contrato define, escreve <code>data/*.json</code> e comita. <b>Nada neste repositório muda — nem o <code>data.js</code>.</b> A página passa a mostrar número real porque os arquivos embaixo dela mudaram. É o caminho pretendido.'],
-    ['Um endpoint ao vivo',
-     'Só a tabela <code>SOURCES</code> no topo de <code>data.js</code> muda: caminho vira URL. O formato devolvido continua idêntico.'],
-    ['Continua sendo arquivo, preenchido à mão',
-     'Funciona e é honesto enquanto o volume for pequeno. Deixa de funcionar no dia em que alguém esquecer de atualizar — e o <code>generated_at</code> no rodapé é justamente o que torna isso visível.'],
+    ['A scheduled job writes the JSON',
+     'A routine calls the Commslayer API and the Shopify API, computes the same raw counts and the same per-ticket arrays the contract defines, writes <code>data/*.json</code> and commits. <b>Nothing in this repository changes — not even <code>data.js</code>.</b> The page shows real numbers because the files underneath it changed. This is the intended route.'],
+    ['A live endpoint',
+     'Only the <code>SOURCES</code> table at the top of <code>data.js</code> changes: paths become URLs. The shape it returns stays identical.'],
+    ['Still files, filled in by hand',
+     'It works and it is honest while the volume is small. It stops working the day someone forgets to update it — and the <code>generated_at</code> in the sidebar is exactly what makes that visible.'],
   ];
 
-  const li = (pairs) => pairs.map(([k, v]) =>
-    `<dt>${k}</dt><dd>${v}</dd>`).join('');
+  const li = (pairs) => pairs.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
 
   return `
     <section class="card">
       <div class="card__head"><div>
-        <h2 class="card__title">Como este portal é alimentado hoje</h2>
-        <p class="card__note">Nove arquivos JSON em <code>data/</code>. A interface não calcula
-        nada a partir de outro lugar, e nenhum módulo além de <code>assets/data.js</code> lê esses arquivos.</p>
+        <h2 class="card__title">How this portal is fed today</h2>
+        <p class="card__note">Nine JSON files in <code>data/</code>. The interface computes nothing
+        from anywhere else, and no module other than <code>assets/data.js</code> reads those files.</p>
       </div></div>
       <div class="card__body">
         <div class="tablewrap"><table>
-          <thead><tr><th>Arquivo</th><th>O que é</th><th>Tamanho hoje</th></tr></thead>
+          <thead><tr><th>File</th><th>What it is</th><th>Size today</th></tr></thead>
           <tbody>${contagem.map(([f, d, n]) => `
             <tr><td><code>${esc(f)}</code></td><td style="text-align:left">${esc(d)}</td><td style="text-align:left">${esc(n)}</td></tr>`).join('')}
           </tbody>
         </table></div>
         <dl class="stat-inline" style="margin-top:24px">
-          <div><dt>Loja</dt><dd style="font-size:17px">${esc(meta.brand.name)}<span class="sub">${esc(meta.brand.site)}</span></dd></div>
-          <div><dt>Atendimento</dt><dd style="font-size:17px">Commslayer<span class="sub">origem de tudo que é conversa</span></dd></div>
-          <div><dt>Loja online</dt><dd style="font-size:17px">Shopify<span class="sub">receita, pedidos e reembolsos</span></dd></div>
-          <div><dt>Fuso do relatório</dt><dd style="font-size:17px">${esc(meta.reporting_timezone)}<span class="sub">em que os dias são fechados</span></dd></div>
-          <div><dt>Gerado em</dt><dd style="font-size:17px">${esc(fmtStamp(meta.generated_at))}<span class="sub">um portal desatualizado aparece como desatualizado</span></dd></div>
+          <div><dt>Store</dt><dd style="font-size:17px">${esc(meta.brand.name)}<span class="sub">${esc(meta.brand.site)}</span></dd></div>
+          <div><dt>Helpdesk</dt><dd style="font-size:17px">Commslayer<span class="sub">source of everything conversational</span></dd></div>
+          <div><dt>Storefront</dt><dd style="font-size:17px">Shopify<span class="sub">revenue, orders and refunds</span></dd></div>
+          <div><dt>Reporting timezone</dt><dd style="font-size:17px">${esc(meta.reporting_timezone)}<span class="sub">the zone days are closed in</span></dd></div>
+          <div><dt>Generated</dt><dd style="font-size:17px">${esc(fmtStamp(meta.generated_at))}<span class="sub">a stale portal shows up as stale</span></dd></div>
         </dl>
       </div>
     </section>
 
     <section class="card">
       <div class="card__head"><div>
-        <h2 class="card__title">O que cada número quer dizer</h2>
-        <p class="card__note">Vale a pena ler antes de discutir se um número está bom ou ruim.</p>
+        <h2 class="card__title">What each number means</h2>
+        <p class="card__note">Worth reading before arguing about whether a number is good or bad.</p>
       </div></div>
       <div class="card__body"><dl class="deflist">${li(definicoes)}</dl></div>
     </section>
 
     <section class="card">
       <div class="card__head"><div>
-        <h2 class="card__title">Convenções que valem para tudo</h2>
+        <h2 class="card__title">Conventions that hold everywhere</h2>
       </div></div>
       <div class="card__body"><dl class="deflist">${li(convencoes)}</dl></div>
     </section>
 
     <section class="card">
       <div class="card__head"><div>
-        <h2 class="card__title">Fase 2: trocar número fictício por número real</h2>
-        <p class="card__note">A aposta deste projeto é que trocar dado falso por dado real
-        <b>não encosta na interface</b>. Só <code>assets/data.js</code> busca alguma coisa; todo o
-        resto recebe o objeto que ele devolve. A tela está acoplada a um formato, não a uma fonte.</p>
+        <h2 class="card__title">Phase 2: swapping made-up numbers for real ones</h2>
+        <p class="card__note">The architectural bet of this project is that swapping fake data for
+        real data <b>does not touch the interface</b>. Only <code>assets/data.js</code> fetches
+        anything; everything else receives the object it returns. The screen is coupled to a shape,
+        not to a source.</p>
       </div></div>
       <div class="card__body">
         <dl class="deflist">${li(fase2)}</dl>
         <p class="note note--scoped" style="margin-top:20px">
-          <b>Token de API nunca pode chegar ao navegador.</b> Se este portal for publicado como
-          site estático, tudo que a página consegue ler qualquer visitante também consegue. Isso
-          descarta chamar a API do Commslayer a partir do código do cliente — a busca tem que
-          acontecer num job, do lado de fora.
+          <b>An API token must never reach the browser.</b> If this portal is published as a static
+          site, anything the page can read, any visitor can read. That rules out calling the
+          Commslayer API from client-side code — the fetching has to happen in a job, outside.
         </p>
         <p class="note">
-          Antes de escrever a rotina de ingestão, uma pergunta decide se o resto é viável:
-          <b>o payload de mensagem do Commslayer distingue resposta de bot de resposta de gente?</b>
-          Primeira resposta está definida como tempo até a primeira resposta <i>humana</i>. Se
-          resposta automática for indistinguível de resposta de atendente, a métrica desaba para
-          perto de zero e para de significar qualquer coisa.
+          Before writing the ingestion routine, one question decides whether the rest is viable:
+          <b>does the Commslayer message payload distinguish a bot reply from a human one?</b>
+          First response is defined as time to the first <i>human</i> reply. If auto-responses are
+          indistinguishable from agent replies, the metric collapses toward zero and stops meaning
+          anything.
         </p>
       </div>
     </section>
 
     <section class="card">
       <div class="card__head"><div>
-        <h2 class="card__title">Sobre os números desta página</h2>
+        <h2 class="card__title">About the numbers on this page</h2>
       </div></div>
       <div class="card__body">
         <p style="font-size:13.5px;color:var(--ink-2);max-width:80ch">
-          Todos são <b>fictícios</b>. Foram gerados por <code>tools/generate-data.ps1</code> com semente
-          fixa, então rodar de novo produz exatamente os mesmos números e o portal não muda sozinho.
-          São plausíveis e internamente consistentes — as medianas batem com os arrays, as faixas de
-          idade somam a fila, os atendentes somam o dia — mas foram <b>gerados, não medidos</b>.
-          O que é real aqui é o formato, as definições e a matemática.
+          Every one of them is <b>made up</b>. They were produced by <code>tools/generate-data.ps1</code>
+          with a fixed seed, so running it again produces exactly the same numbers and the portal never
+          shifts on its own. They are plausible and internally consistent — the medians match the arrays,
+          the age bands add up to the queue, the agents add up to the day — but they were
+          <b>generated, not measured</b>. What is real here is the shape, the definitions and the maths.
         </p>
-        <p class="note">Período mostrado: ${esc(fmtDay(meta.period_start))} a ${esc(fmtDay(meta.period_end))},
-        comparado com ${esc(fmtDay(meta.previous_period_start))} a ${esc(fmtDay(meta.previous_period_end))}.</p>
+        <p class="note">Period shown: ${esc(fmtDay(meta.period_start))} to ${esc(fmtDay(meta.period_end))},
+        compared against ${esc(fmtDay(meta.previous_period_start))} to ${esc(fmtDay(meta.previous_period_end))}.</p>
       </div>
     </section>
   `;
