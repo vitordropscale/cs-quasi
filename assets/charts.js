@@ -168,14 +168,38 @@ export function lineChart({ days, series, height = 250, formatValue = fmtInt, yL
   const paths = series.map((s) => {
     const pts = s.values.map((v, i) => (v == null ? null : `${x(i).toFixed(1)},${y(v).toFixed(1)}`)).filter(Boolean);
     if (!pts.length) return '';
-    const last = s.values.length - 1;
-    // Rótulo direto na ponta: com até 4 séries a identidade não precisa
-    // depender só do quadradinho da legenda.
-    const label = series.length <= 4 && s.values[last] != null
-      ? `<text x="${(x(last) + 6).toFixed(1)}" y="${(y(s.values[last]) + 3.5).toFixed(1)}"
-             font-size="10.5" font-weight="600" fill="${s.color}">${esc(s.label)}</text>` : '';
     return `<polyline fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round"
-              stroke-linecap="round" points="${pts.join(' ')}"/>${label}`;
+              stroke-linecap="round" points="${pts.join(' ')}"/>`;
+  }).join('');
+
+  // Rótulo direto na ponta: com até 4 séries a identidade não precisa depender
+  // só do quadradinho da legenda. Mas séries que convergem no fim da semana
+  // empilham os rótulos em cima uns dos outros, e rótulo ilegível é pior do que
+  // rótulo nenhum — então eles são afastados até caberem lado a lado.
+  const GAP = 13;
+  const last = days.length - 1;
+  const marcas = direct
+    ? series.map((s, i) => ({ i, label: s.label, color: s.color, v: s.values[last] }))
+        .filter((m) => m.v != null)
+        .map((m) => ({ ...m, yv: y(m.v) }))
+        .sort((a, b) => a.yv - b.yv)
+    : [];
+  for (let i = 1; i < marcas.length; i++) {
+    if (marcas[i].yv - marcas[i - 1].yv < GAP) marcas[i].yv = marcas[i - 1].yv + GAP;
+  }
+  // Se o empurrão jogou o último para fora, desloca o bloco inteiro para cima.
+  const excesso = marcas.length ? marcas[marcas.length - 1].yv - (PAD.t + ih) : 0;
+  if (excesso > 0) for (const m of marcas) m.yv -= excesso;
+
+  const rotulos = marcas.map((m) => {
+    const yReal = y(m.v);
+    // Quando o rótulo saiu do lugar, um tracinho liga ele de volta à linha.
+    const guia = Math.abs(m.yv - yReal) > 2
+      ? `<line x1="${(x(last) + 2).toFixed(1)}" y1="${yReal.toFixed(1)}"
+              x2="${(x(last) + 7).toFixed(1)}" y2="${m.yv.toFixed(1)}"
+              stroke="${m.color}" stroke-width="1" opacity=".5"/>` : '';
+    return `${guia}<text x="${(x(last) + 10).toFixed(1)}" y="${(m.yv + 3.5).toFixed(1)}"
+      font-size="10.5" font-weight="600" fill="${m.color}">${esc(m.label)}</text>`;
   }).join('');
 
   // Faixas de acerto: uma por dia, largas o bastante para o mouse pegar.
@@ -197,7 +221,7 @@ export function lineChart({ days, series, height = 250, formatValue = fmtInt, yL
     <line class="baseline" x1="${PAD.l}" y1="${y(0).toFixed(1)}" x2="${W - padR}" y2="${y(0).toFixed(1)}"/>
     ${xlabels}
     <line class="crosshair" y1="${PAD.t}" y2="${PAD.t + ih}" x1="0" x2="0" opacity="0"/>
-    ${paths}${dots}${hits}
+    ${paths}${rotulos}${dots}${hits}
   </svg>`;
 }
 

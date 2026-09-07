@@ -1,5 +1,20 @@
 # Portal Quasi — Atendimento
 
+> ### ⚠️ Isto é uma demonstração
+>
+> **Peça de portfólio. Não tem vínculo com a Quasi e não é um relatório da empresa.**
+>
+> Todos os números aqui — conversas, tempos de resposta, reembolsos, chargebacks, receita,
+> nomes de clientes, nomes de atendentes, números de pedido — são **inventados**. Saíram de
+> um script gerador (`tools/generate-data.ps1`) com semente fixa. Nenhum dado real de
+> cliente, pedido ou atendimento foi usado.
+>
+> O que é real é o *formato*: as definições das métricas, a matemática e a arquitetura, que
+> foram feitas para receber dado verdadeiro sem mudar a interface.
+>
+> As cores e a tipografia foram tiradas do CSS público do site da marca, apenas para o
+> exercício ficar visualmente coerente.
+
 Relatório semanal de atendimento ao cliente da **Quasi**, uma loja só, atendida pelo
 **Commslayer** sobre **Shopify**. Cinco telas: a visão do cliente, a operação interna,
 chargebacks, os planos de melhoria e a explicação de onde cada número sai.
@@ -175,7 +190,7 @@ Dois detalhes que importam para funcionar num subcaminho:
 - **Todo caminho neste repositório é relativo.** Nenhuma barra inicial em folha de estilo,
   script ou URL de fetch, e o `data.js` resolve os caminhos dos JSON contra
   `import.meta.url` em vez da raiz do documento. É isso que faz o site funcionar igual em
-  `exemplo.github.io/quasi-portal/` e na raiz de um servidor.
+  `vitordropscale.github.io/cs-quasi/` e na raiz de um servidor.
 
 ---
 
